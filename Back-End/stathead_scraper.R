@@ -1,14 +1,19 @@
-library(rvest)
-library(RSelenium)
-library(wdman)
+
+#Install packages before use. 
+#Install firefox
+
+require(rvest)
+require(RSelenium)
+require(httr)
+require(tidyverse)
 
 mainPage <- read_html("https://www.quanthockey.com/nhl/seasons/2020-21-nhl-players-stats.html")
 table <- mainPage %>% html_element("#AjaxRefresh") %>% html_table()
 
 table
 
-selServ <- selenium(verbose = FALSE)
+rD <- rsDriver(browser="firefox", port=4545L, verbose=F)
+remDr <- rD[["client"]]
 
+remDr$navigate("https://www.quanthockey.com/nhl/seasons/2020-21-nhl-players-stats.html")
 
-driver.get("https://www.lambdatest.com/")
-driver.findElement(By.linkText("Login")).click(); #using Selenium click button method
