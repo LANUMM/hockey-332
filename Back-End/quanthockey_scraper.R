@@ -9,10 +9,9 @@ library(tidyverse)
 #Initialize firefox browser
 rD <- rsDriver(browser="firefox", port=4545L, verbose=F)
 remDr <- rD[["client"]]
-Sys.sleep(5)
 
 #scraping parameters
-startSeason <- '2019-20'
+startSeason <- '2020-21'
 endSeason <- '2020-21'
 
 #find how many years you need to iterate through for the for loop
@@ -20,7 +19,7 @@ numSeasons <- strtoi(substring(endSeason,1,4)) - strtoi(substring(startSeason,1,
 currentSeason <- startSeason
 #seasonsList will be a list of tibbles for each season,
 seasonsList <- list()
-for(i in 1:numSeasons){
+for(i in 2:numSeasons){
  
   #Nav to main page
   remDr$navigate(paste("https://www.quanthockey.com/nhl/seasons/",currentSeason,"-nhl-players-stats.html", sep=""))
@@ -32,7 +31,7 @@ for(i in 1:numSeasons){
   #Loop through pages 2 to maxPage
   #TODO: Scrape the value for maxPage
   maxPage <- 20
-  for(page in 2:maxPage){
+  for(page in 1:maxPage){
     # Nav to next table page 
     remDr$navigate(paste("javascript:PaginateStats('Season','Players','",currentSeason,"','0','",currentSeason,"','reg','P','DESC','",page,"','NHL','en',true);", sep=""))
     #Get html
@@ -44,7 +43,7 @@ for(i in 1:numSeasons){
   }
   #TODO: Clean data - remove header rows, rename header, checks
   #TODO: Add calculated stat?
-  
+  table <- table[!table$`Time on Ice`=="TOI",]
   #add table for currentSeason to seasonsDF
   seasonsList[[i]] <- table
   names(seasonsList)[[i]] <- currentSeason
@@ -61,3 +60,7 @@ system("taskkill /im java.exe /f", intern=FALSE, ignore.stdout=FALSE)
 
 ####################
 print(seasonsList[[1]], n=300)
+
+
+
+
