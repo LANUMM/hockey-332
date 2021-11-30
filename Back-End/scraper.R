@@ -1,3 +1,28 @@
+
+
+
+
+
+#######################################################################################
+# Returns raw data scraped from Hockey-reference.com with "season" (skaterDF, goalieDF)
+#######################################################################################
+
+scrapeAll <- function(){
+   startYear <- 2008
+   endYear <- 2021
+   
+   skaterDF <- data.frame()
+   goalieDF <- data.frame()
+   
+   for(i in c(startYear:endYear)){
+      skaterDF <- rbind(skaterDF, cbind(scrapeSkaters(i),year=i))
+      goalieDF <- rbind(goalieDF, cbind(scrapeGoalies(i),year=i))
+     
+   }
+   return(c(skaterDF, goalieDF))
+}
+
+
 #######################################################################################
 # Function to scrape season skater statistics from Hockey-reference.com
 #######################################################################################
@@ -132,8 +157,16 @@ scrapeGoalies <- function(S) {
    return(ds.goalies[,c(2:7,12,13,15)])   
 }
 
-#How to deal with duplicates
-# Multiple entries because they changed teams
-# Multiple entries because they have the same name
-# Assign ID in R. ID will not be a unique value. PKs are Season/Year and ID
+#######################################################################################
+# Process duplicate values in each year
+#######################################################################################
+inYearDupes <- function(playerDF){
+   
+}
+
+
+
+
+
+
 
