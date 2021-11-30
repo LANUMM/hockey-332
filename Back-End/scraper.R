@@ -2,9 +2,6 @@
 # Function to scrape season skater statistics from Hockey-reference.com
 #######################################################################################
 
-#Add ppa and ppg to form ppp
-#Add sha and shg to form shp
-
 scrapeSkaters <- function(S) {
    # The function takes parameter S which is a string and represents the season (YYYY)
    # Returns: data frame      
@@ -12,7 +9,7 @@ scrapeSkaters <- function(S) {
    require(XML)
    require(httr)
 
-   # Define certicificate file, needed since website is HTTPS
+   # Define certificate file, needed since website is HTTPS
    cafile <- system.file("CurlSSL", "cacert.pem", package = "RCurl")
    
    cafile <- "/etc/ssl/certs/ca-certificates.crt"
@@ -74,6 +71,9 @@ scrapeSkaters <- function(S) {
    return(ds.skaters[,c(2:9,11,14:15,18:20,24:25,29,32)])   
 }
 
+#######################################################################################
+# Function to scrape season goalie statistics from Hockey-reference.com
+#######################################################################################
 
 scrapeGoalies <- function(S) {
    # The function takes parameter S which is a string and represents the season (YYYY)
@@ -129,6 +129,11 @@ scrapeGoalies <- function(S) {
    
    
    ## return the dataframe of subset of all categories 
-   #return(ds.skaters[,c(2:11,29,15:16,20,24)])   
    return(ds.goalies[,c(2:7,12,13,15)])   
 }
+
+#How to deal with duplicates
+# Multiple entries because they changed teams
+# Multiple entries because they have the same name
+# Assign ID in R. ID will not be a unique value. PKs are Season/Year and ID
+
