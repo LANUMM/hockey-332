@@ -1,8 +1,3 @@
-
-
-
-
-
 #######################################################################################
 # Returns raw data scraped from Hockey-reference.com (2008-2021) with "season" added (skaterDF, goalieDF)
 #######################################################################################
@@ -19,7 +14,11 @@ scrapeAll <- function(){
       goalieDF <- rbind(goalieDF, cbind(scrapeGoalies(i),year=i))
      
    }
-   return(c(skaterDF, goalieDF))
+   
+   
+   
+   
+   return(list(skaterDF, goalieDF))
 }
 
 
@@ -152,9 +151,14 @@ scrapeGoalies <- function(S) {
    ## remove any ' from players names (will case parsing issues later otherwise)   
    ds.goalies$player <- gsub("'","",ds.goalies[,"player"])
    
+   ## dataframe of subset of all categories 
+   ds.goalies <- ds.goalies[,c(1:7,12,13,15)]
    
-   ## return the dataframe of subset of all categories 
-   return(ds.goalies[,c(2:7,12,13,15)])   
+   ## deal with team changes
+   ds.goalies <- fixTeamDupes(ds.goalies)
+   
+   ## return cleaned data
+   return(ds.goalies)
 }
 
 #######################################################################################
@@ -162,39 +166,44 @@ scrapeGoalies <- function(S) {
 #Input: Player DF for ONE YEAR. 
 #Output: Player DF with instances of changed teams dealt with (1 row for each player)
 #           adds the teams to tm ex) (MTL, COL)
+#           also removes rk
 #######################################################################################
 fixTeamDupes <- function(playerDF){
    
+   ## Keeps track of the index of where dupes occur 
    dupeIx <- c()
    
-   
+   ## For every row in playeDF check to see if the next row has the same rk 
    for(i in c(1:(nrow(playerDF)-1))){
       while(!is.na(playerDF$rk[i+1]) && playerDF$rk[i]==playerDF$rk[i+1]){
+         #Add the team they were on to the row with the summary data
          playerDF$tm[i] <- paste(playerDF$tm[i], ",", playerDF$tm[i+1], sep="")
+         #remove the duplicate row
          playerDF <- playerDF[-(i+1), ]
+         #add the index of the dupelicate row so we can remove "TOT" later
          dupeIx <- c(dupeIx, i)
       }
    }
-   
+   #Get rid of "TOT" on duplicate columns
    for(i in unique(dupeIx)){
       playerDF$tm[i] <- substring(playerDF$tm[i], 5)
    }
+   #remove rk column
+   playerDF <- playerDF[, -1]
+   
    return(playerDF)
 }
 
-sk2017 <- scrapeSkaters(2017)
-
-dupeIx <- c()
 
 
-for(i in c(1:(nrow(sk2017)-1))){
-   while(!is.na(sk2017$rk[i+1]) && sk2017$rk[i]==sk2017$rk[i+1]){
-      sk2017$tm[i] <- paste(sk2017$tm[i], ",", sk2017$tm[i+1], sep="")
-      sk2017 <- sk2017[-(i+1), ]
-      dupeIx <- c(dupeIx, i)
-   }
-}
+#Multiple instances of the same name and same year
 
-for(i in unique(dupeIx)){
-   sk2017$tm[i] <- substring(sk2017$tm[i], 5)
-}
+
+
+allGoalies <- allData[[2]]
+
+duplicated(allData[1]$player)
+
+allGoalies[allGoalies$player == "Alex Auld" && allGoalies$, ]
+
+           
