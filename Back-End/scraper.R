@@ -1,5 +1,10 @@
+#Used IDs
+
+
 #######################################################################################
 # Returns processed data scraped from Hockey-reference.com (2008-2021) with "season" added (skaterDF, goalieDF)
+# Input: N/A
+# Output: Data frame ready to be put into DB (duplicated dealt with, IDs assigned)
 #######################################################################################
 
 scrapeAll <- function(){
@@ -15,17 +20,18 @@ scrapeAll <- function(){
      
    }
    
+   #Assign ID
+   finalDF <-assignID(list(skaterDF, goalieDF))
    
-   
-   
-   return(list(skaterDF, goalieDF))
+   return(finalDF)
 }
 
 
 #######################################################################################
 # Function to scrape season skater statistics from Hockey-reference.com
+# Input: parameter S which is a string and represents the season (YYYY)
+# Output: 
 #######################################################################################
-
 scrapeSkaters <- function(S) {
    # The function takes parameter S which is a string and represents the season (YYYY)
    # Returns: data frame      
@@ -96,6 +102,7 @@ scrapeSkaters <- function(S) {
    ## deal with team changes
    ds.skaters <- fixTeamDupes(ds.skaters)
    
+   
    ## return cleaned data
    return(ds.skaters)
  
@@ -104,7 +111,6 @@ scrapeSkaters <- function(S) {
 #######################################################################################
 # Function to scrape season goalie statistics from Hockey-reference.com
 #######################################################################################
-
 scrapeGoalies <- function(S) {
    # The function takes parameter S which is a string and represents the season (YYYY)
    # Returns: data frame      
@@ -169,8 +175,8 @@ scrapeGoalies <- function(S) {
 
 #######################################################################################
 # Process duplicate values in each year. 
-#Input: Player DF for ONE YEAR. 
-#Output: Player DF with instances of changed teams dealt with (1 row for each player)
+# Input: Player DF for ONE YEAR. 
+# Output: Player DF with instances of changed teams dealt with (1 row for each player)
 #           adds the teams to tm ex) (MTL, COL)
 #           also removes rk
 #######################################################################################
@@ -186,7 +192,7 @@ fixTeamDupes <- function(playerDF){
          playerDF$tm[i] <- paste(playerDF$tm[i], ",", playerDF$tm[i+1], sep="")
          #remove the duplicate row
          playerDF <- playerDF[-(i+1), ]
-         #add the index of the dupelicate row so we can remove "TOT" later
+         #add the index of the duplicate row so we can remove "TOT" later
          dupeIx <- c(dupeIx, i)
       }
    }
@@ -202,63 +208,133 @@ fixTeamDupes <- function(playerDF){
 
 
 
-#Multiple instances of the same name and same year
-
-
-allData <- scrapeAll()
-
-allGoalies <- allData[[2]]
-allSkaters <- allData[[1]]
-
-# names of skaters with the same name as another skater 
-problemSkaters <- c()
-# names of goalies with the same name as another goalie
-problemGoalies <- c()
-
-#identify problemGoalies
-for(i in unique(allGoalies$player)){
-   if(any(duplicated(allGoalies[allGoalies$player == i, ]$year))){
-      problemGoalies <- c(problemGoalies, i)
+#######################################################################################
+# Assigns IDs to players with the same name as another player
+# Input: a list of data frames (skaterDF, goalieDF)
+# Output: a list of data frame (skaterDF, goalieDF)
+#######################################################################################
+assignID <- function(allData){
+   allGoalies <- allData[[2]]
+   allSkaters <- allData[[1]]
+   usedIDs <- c(0)
+   
+   # names of skaters with the same name as another skater 
+   problemSkaters <- c()
+   # names of goalies with the same name as another goalie
+   problemGoalies <- c()
+   
+   #identify problemGoalies
+   for(i in unique(allGoalies$player)){
+      if(any(duplicated(allGoalies[allGoalies$player == i, ]$year))){
+         problemGoalies <- c(problemGoalies, i)
+      }
    }
-}
-
-#identify problemSkaters
-for(i in unique(allSkaters$player)){
-   if(any(duplicated(allSkaters[allSkaters$player == i, ]$year))){
-      problemSkaters <- c(problemSkaters, i)
+   
+   #identify problemSkaters
+   for(i in unique(allSkaters$player)){
+      if(any(duplicated(allSkaters[allSkaters$player == i, ]$year))){
+         problemSkaters <- c(problemSkaters, i)
+      }
    }
+   
+   
+   for(i in problemSkaters){
+      #rows with problemSkaters
+      problemRows <- allSkaters[allSkaters$player == i, ]
+      
+      ## Check if you should run age test or position test
+      #split the problem rows up by year
+      splitProblems <- split(allSkaters[allSkaters$player == i, ], allSkaters[allSkaters$player == i, ]$year)
+      # if any of the years with duplicate years have different ages use the age test,
+      # else use the position test
+      if(any(lapply(splitProblems, f <- function(x){length((unique(x$age)))}) > 1)){
+         sorted <- ageTest(problemRows)
+      }else{
+         sorted <- positionTest(problemRows)
+      }
+      #Identify the rownames of the two players
+      actualIndex1 <- as.integer(rownames(problemRows)[sorted[[1]]])
+      actualIndex2 <- as.integer(rownames(problemRows)[sorted[[2]]])
+      #Get player1ID
+      newIDs <- genID(1,usedIDs)[[1]]
+      usedIDs <- genID(1,usedIDs)[[2]]
+      
+      for(i in actualIndex1){
+         allSkaters$player_id[rownames(allSkaters)==i] <- newIDs
+      }
+      
+      #Get player2ID
+      newIDs <- genID(1,usedIDs)[[1]]
+      usedIDs <- genID(1,usedIDs)[[2]]
+      
+      for(i in actualIndex2){
+         allSkaters$player_id[rownames(allSkaters)==i] <- newIDs
+      }
+      
+   }
+   
+   for(i in problemGoalies){
+      #rows with problemGoalies
+      problemRows <- allGoalies[allGoalies$player == i, ]
+      
+      ## Check if you should run age test or position test
+      #split the problem rows up by year
+      splitProblems <- split(allGoalies[allGoalies$player == i, ], allGoalies[allGoalies$player == i, ]$year)
+      # if any of the years with duplicate years have different ages use the age test,
+      # else use the position test
+      if(any(lapply(splitProblems, f <- function(x){length((unique(x$age)))}) > 1)){
+         sorted <- ageTest(problemRows)
+      }else{
+         sorted <- positionTest(problemRows)
+      }
+      #Identify the rownames of the two players
+      actualIndex1 <- as.integer(rownames(problemRows)[sorted[[1]]])
+      actualIndex2 <- as.integer(rownames(problemRows)[sorted[[2]]])
+      #Get player1ID
+      newIDs <- genID(1,usedIDs)[[1]]
+      usedIDs <- genID(1,usedIDs)[[2]]
+      
+      for(i in actualIndex1){
+         allGoalies$player_id[rownames(allGoalies)==i] <- newIDs
+      }
+      
+      #Get player2ID
+      newIDs <- genID(1,usedIDs)[[1]]
+      usedIDs <- genID(1,usedIDs)[[2]]
+      
+      for(i in actualIndex2){
+         allGoalies$player_id[rownames(allGoalies)==i] <- newIDs
+      }
+      
+   }
+   
+   for(i in unique(allSkaters$player)){
+      if(!is.element(i,problemSkaters)){
+         genNewID <- genID(1,usedIDs)
+         newID <- genNewID[[1]]
+         usedIDs <- genNewID[[2]]
+         allSkaters$player_id[allSkaters$player==i] <- newID
+      }
+   }
+   
+   for(i in unique(allGoalies$player)){
+      if(!is.element(i,problemGoalies)){
+         genNewID <- genID(1,usedIDs)
+         newID <- genNewID[[1]]
+         usedIDs <- genNewID[[2]]
+         allGoalies$player_id[allGoalies$player==i] <- newID
+      }
+   }
+   
+   
+   return(list(allSkaters, allGoalies))
 }
 
-problemSkaters
-problemGoalies
-
-for(i in problemGoalies){
-   
-   #run age test
-   
-   #run position test
-   
-   #Assign IDs
-   
-}
-
-for(i in problemSkaters){
-   #rows with problemSkaters
-   problemRows <- allSkaters[allSkaters$player == i, ]
-   
-   #run age test
-   ageResults <- ageTest(problemRows)
-   print(ageResults)
-   #run position test
-   
-   #Assign IDs
-}
-
-allSkaters[allSkaters$player == "Alexandre Picard", ]
-allSkaters[allSkaters$player == "Sebastian Aho", ]
-
-
-
+#######################################################################################
+# Function to distinguish 2 players with the same name by what age they should be
+# Input: The rows of the offending names data (both players)
+# Output: The indexes of the input data that correspond to which player (p1, p2)
+#######################################################################################
 ageTest <- function(problemDF){
   #The index attributed to player1
    p1 <- c(1)
@@ -277,3 +353,42 @@ ageTest <- function(problemDF){
    }
    return(list(p1,p2))
 }
+
+#######################################################################################
+# Function to distinguish 2 players with the same name by what position they play
+# Input: The rows of the offending names data (both players)
+# Output: The indexes of the input data that correspond to which player (p1, p2)
+#######################################################################################
+positionTest <- function(problemDF){
+   #The index attributed to player1
+   p1 <- c(1)
+   # THe index attributed to player2
+   p2 <- c()
+   
+   for(i in c(2:nrow(problemDF))){
+      #if the position matches the position player 1 usually plays its p1, else p2
+      if(problemDF$pos[i]==problemDF$pos[p1[1]]
+         && problemDF$year[i] != problemDF$year[p1[1]]){
+         p1 <- c(i, p1)
+      }else{
+         p2 <- c(i, p2)
+      }
+   }
+   return(list(p1,p2))
+}
+
+#######################################################################################
+# Function to generate unique ID number that has not been used yet. Stores used in global var usedID
+# Input: integer n for the number of random numbers required, usedID vector of used IDs
+# Output: a vector of unique IDs of length n, usedID vector of used IDs
+#######################################################################################
+genID <- function(n, usedID=0){
+   returnID <- c()
+   for(i in c(1:n)){
+      last <- usedID[1]
+      returnID <- c(last+1, returnID)
+      usedID <- c(last+1, usedID)
+   }
+   return(list(returnID, usedID))
+}
+
