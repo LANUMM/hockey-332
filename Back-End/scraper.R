@@ -163,11 +163,23 @@ scrapeGoalies <- function(S) {
 #Output: Player DF with instances of changed teams dealt with (1 row for each player)
 #           adds the teams to tm ex) (MTL, COL)
 #######################################################################################
-changeTeamDupes <- function(playerDF){
-   #Find where Team = TOT
-   playerDFx <- playerDF[playerDF$tm == "TOT", ]
+fixTeamDupes <- function(playerDF){
    
-   return(playerDFx)
+   dupeIx <- c()
+   
+   
+   for(i in c(1:(nrow(playerDF)-1))){
+      while(!is.na(playerDF$rk[i+1]) && playerDF$rk[i]==playerDF$rk[i+1]){
+         playerDF$tm[i] <- paste(playerDF$tm[i], ",", playerDF$tm[i+1], sep="")
+         playerDF <- playerDF[-(i+1), ]
+         dupeIx <- c(dupeIx, i)
+      }
+   }
+   
+   for(i in unique(dupeIx)){
+      playerDF$tm[i] <- substring(playerDF$tm[i], 5)
+   }
+   return(playerDF)
 }
 
 sk2017 <- scrapeSkaters(2017)
