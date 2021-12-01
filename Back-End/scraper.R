@@ -210,11 +210,70 @@ allData <- scrapeAll()
 allGoalies <- allData[[2]]
 allSkaters <- allData[[1]]
 
+# names of skaters with the same name as another skater 
+problemSkaters <- c()
+# names of goalies with the same name as another goalie
+problemGoalies <- c()
 
+#identify problemGoalies
 for(i in unique(allGoalies$player)){
+   if(any(duplicated(allGoalies[allGoalies$player == i, ]$year))){
+      problemGoalies <- c(problemGoalies, i)
+   }
+}
+
+#identify problemSkaters
+for(i in unique(allSkaters$player)){
+   if(any(duplicated(allSkaters[allSkaters$player == i, ]$year))){
+      problemSkaters <- c(problemSkaters, i)
+   }
+}
+
+problemSkaters
+problemGoalies
+
+for(i in problemGoalies){
+   
+   #run age test
+   
+   #run position test
+   
+   #Assign IDs
    
 }
 
-allGoalies[allGoalies$player == "Alex Auld"]
+for(i in problemSkaters){
+   #rows with problemSkaters
+   problemRows <- allSkaters[allSkaters$player == i, ]
+   
+   #run age test
+   ageResults <- ageTest(problemRows)
+   print(ageResults)
+   #run position test
+   
+   #Assign IDs
+}
 
-           
+allSkaters[allSkaters$player == "Alexandre Picard", ]
+allSkaters[allSkaters$player == "Sebastian Aho", ]
+
+
+
+ageTest <- function(problemDF){
+  #The index attributed to player1
+   p1 <- c(1)
+   # THe index attributed to player2
+   p2 <- c()
+   
+   for(i in c(2:nrow(problemDF))){
+      #If the age matches how old p1 should be at that season and p1 does not 
+      # already have an entry for that season its p1, else its p2 
+      if(problemDF$age[i]== (problemDF$age[p1[1]] + problemDF$year[i] - problemDF$year[p1[1]]) 
+         && problemDF$year[i] != problemDF$year[p1[1]]){
+         p1 <- c(i,p1)
+      }else{
+         p2 <- c(i, p2)
+      }
+   }
+   return(list(p1,p2))
+}
