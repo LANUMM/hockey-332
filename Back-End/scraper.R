@@ -4,7 +4,7 @@
 
 
 #######################################################################################
-# Returns raw data scraped from Hockey-reference.com with "season" (skaterDF, goalieDF)
+# Returns raw data scraped from Hockey-reference.com (2008-2021) with "season" added (skaterDF, goalieDF)
 #######################################################################################
 
 scrapeAll <- function(){
@@ -92,8 +92,8 @@ scrapeSkaters <- function(S) {
    ds.skaters <- cbind(ds.skaters, shp=ds.skaters$sha+ds.skaters$shg)
    
    ## return the dataframe of subset of all categories 
-   #return(ds.skaters[,c(2:11,29,15:16,20,24)])   
-   return(ds.skaters[,c(2:9,11,14:15,18:20,24:25,29,32)])   
+ ######  #ALTERED TO RETURN rk #########################################
+   return(ds.skaters[,c(1:9,11,14:15,18:20,24:25,29,32)])   
 }
 
 #######################################################################################
@@ -158,15 +158,31 @@ scrapeGoalies <- function(S) {
 }
 
 #######################################################################################
-# Process duplicate values in each year
+# Process duplicate values in each year. 
+#Input: Player DF for ONE YEAR. 
+#Output: Player DF with instances of changed teams dealt with (1 row for each player)
+#           adds the teams to tm ex) (MTL, COL)
 #######################################################################################
-inYearDupes <- function(playerDF){
+changeTeamDupes <- function(playerDF){
+   #Find where Team = TOT
+   playerDFx <- playerDF[playerDF$tm == "TOT", ]
    
+   return(playerDFx)
 }
 
+sk2017 <- scrapeSkaters(2017)
+
+dupeIx <- c()
 
 
+for(i in c(1:(nrow(sk2017)-1))){
+   while(!is.na(sk2017$rk[i+1]) && sk2017$rk[i]==sk2017$rk[i+1]){
+      sk2017$tm[i] <- paste(sk2017$tm[i], ",", sk2017$tm[i+1], sep="")
+      sk2017 <- sk2017[-(i+1), ]
+      dupeIx <- c(dupeIx, i)
+   }
+}
 
-
-
-
+for(i in unique(dupeIx)){
+   sk2017$tm[i] <- substring(sk2017$tm[i], 5)
+}
