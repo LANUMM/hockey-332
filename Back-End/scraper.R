@@ -1,4 +1,14 @@
-#Used IDs
+
+####################################
+# SCRIPT 
+####################################
+allData <- scrapeAll()
+allSkaters <- allData[[1]]
+allGoalies <- allData[[2]]
+head(allSkaters)
+head(allGoalies)
+
+#allSkaters and allGoalies ready to go into DB. 
 
 
 #######################################################################################
