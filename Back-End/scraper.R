@@ -1,5 +1,5 @@
 #######################################################################################
-# Returns raw data scraped from Hockey-reference.com (2008-2021) with "season" added (skaterDF, goalieDF)
+# Returns processed data scraped from Hockey-reference.com (2008-2021) with "season" added (skaterDF, goalieDF)
 #######################################################################################
 
 scrapeAll <- function(){
@@ -90,9 +90,15 @@ scrapeSkaters <- function(S) {
    ds.skaters <- cbind(ds.skaters, ppp=ds.skaters$ppa+ds.skaters$ppg)
    ds.skaters <- cbind(ds.skaters, shp=ds.skaters$sha+ds.skaters$shg)
    
-   ## return the dataframe of subset of all categories 
- ######  #ALTERED TO RETURN rk #########################################
-   return(ds.skaters[,c(1:9,11,14:15,18:20,24:25,29,32)])   
+   ## dataframe of subset of all categories 
+   ds.skaters <- ds.skaters[,c(1:9,11,14:15,18:20,24:25,29,32)]
+   
+   ## deal with team changes
+   ds.skaters <- fixTeamDupes(ds.skaters)
+   
+   ## return cleaned data
+   return(ds.skaters)
+ 
 }
 
 #######################################################################################
@@ -199,11 +205,16 @@ fixTeamDupes <- function(playerDF){
 #Multiple instances of the same name and same year
 
 
+allData <- scrapeAll()
 
 allGoalies <- allData[[2]]
+allSkaters <- allData[[1]]
 
-duplicated(allData[1]$player)
 
-allGoalies[allGoalies$player == "Alex Auld" && allGoalies$, ]
+for(i in unique(allGoalies$player)){
+   
+}
+
+allGoalies[allGoalies$player == "Alex Auld"]
 
            
