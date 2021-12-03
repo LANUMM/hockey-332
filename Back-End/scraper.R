@@ -1,15 +1,4 @@
 
-####################################
-# SCRIPT 
-####################################
-allData <- scrapeAll()
-allSkaters <- allData[[1]]
-allGoalies <- allData[[2]]
-head(allSkaters)
-head(allGoalies)
-
-#allSkaters and allGoalies ready to go into DB. 
-
 
 #######################################################################################
 # Returns processed data scraped from Hockey-reference.com (2008-2021) with "season" added (skaterDF, goalieDF)
@@ -401,4 +390,38 @@ genID <- function(n, usedID=0){
    }
    return(list(returnID, usedID))
 }
+
+
+####################################
+# SCRIPT 
+####################################
+allData <- scrapeAll()
+allSkaters <- allData[[1]]
+allGoalies <- allData[[2]]
+head(allSkaters)
+head(allGoalies)
+
+#allSkaters and allGoalies ready to go into DB. 
+require("RMySQL")
+library(RMySQL)
+
+mydb <- dbConnect(MySQL(), user = 'g1117489', password = '4jU2vUv9', dbname = 'g1117489', host = 'mydb.ics.purdue.edu')
+on.exit(dbDisconnect(mydb))
+
+dbWriteTable(mydb,"Skaters",allSkaters,overwrite=TRUE)
+
+
+
+all_cons <- dbListConnections(MySQL())
+for (con in all_cons){
+   dbDisconnect(con)
+}
+
+
+myData <- allSkaters[ ,c("player_id", "year", "player","age","tm","pos","gp","g","a","pts","pim","ppg","shg","bpa","sha","sog","blk","hit","ppp","shp","rank")]
+myData <- allSkaters[ ,c("player_id", "year", "player","age","tm","pos","gp","g","a","pts","pim","ppg","shg","ppa","sha","sog","blk","hit","ppp","shp","rank")]
+colnames(myData)[2] <- "season"
+myData
+
+write.csv(myData,"C:\\Users\\matth\\OneDrive\\Desktop\\myData.csv", row.names = FALSE)
 

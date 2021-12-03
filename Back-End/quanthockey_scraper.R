@@ -61,6 +61,9 @@ system("taskkill /im java.exe /f", intern=FALSE, ignore.stdout=FALSE)
 ####################
 print(seasonsList[[1]], n=300)
 
+###############
 
 
-
+#Check a given season for multiple of the same name
+#Check for a changed team, or two people with the same name
+#Assign player ID
