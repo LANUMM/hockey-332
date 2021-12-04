@@ -90,7 +90,7 @@ df_od_pred_pts <- 6*df_od_pred$goals + 4*df_od_pred$assists + 2*df_od_pred$ppp +
 od_pred2 <- df_od_pred_pts
 od_pred2[od_pred2==0] <- NA
 od_pred2 <- od_pred2[-c(is.na(od_pred2))]
-
+#
 meanSkate <- mean(od_pred2)
 sdSkate <- sd(od_pred2)
 ZSkate <- ((od_pred2 - meanSkate) / (sdSkate))
