@@ -23,6 +23,21 @@ selection_od = dbSendQuery(db, "select * from table_name") # remove ""? # select
 df_od = data.frame(fetch(selection_od, n = -1)) # dataframe of offense and defense player stats
 ###NOTE: PREDICTOR VARIABLES MUST BE FLOAT OR CATEGORICAL, MAY NEED TO RECAST
 
+##Binary Stuff
+#Interseason Team Change
+m_team = df_od$tm[str_detect()]
+
+#Games played increase excl. (boom)
+gp_boom = df_od$gp
+
+#Games played decrease or equal (bust)
+gp_bust = df_od$gp
+# Optimal Age Checker
+opt_age = (df_od$age == 28)
+
+# Rookie Checker
+rookie_age = (df_od$age == 23)
+
 ## TRAIN/TEST PARTITIONING
 trainindex_od = data.frame(createDataPartition("df_od$targetvariable", p = 0.75, list = F, times = 1))$Resample1 # should train/test selection be random or linear with time?
 train_od = data.frame(df_od[trainindex_od,])
