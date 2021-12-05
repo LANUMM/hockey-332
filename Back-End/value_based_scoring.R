@@ -15,7 +15,7 @@ mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = '
 on.exit(dbDisconnect(mydb))
 selection_od = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
 df_od = data.frame(fetch(selection_od, n = -1)) #dataframe
-selection_g = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
+selection_g = dbSendQuery(mydb, "select * from Goalies") # remove ""? # select TAVG
 df_g = data.frame(fetch(selection_g, n = -1)) #dataframe
 #rank is rank pulled from sql pertaining to sepcific player
 
@@ -107,9 +107,16 @@ df_Val_score2g = (g_pred2$fantasypointcol[rankg] / meanSkate_res) #check for vec
 
 df_val_score3g = (g_pred2$fantasypointcol[rankg] / meanGoal) #add $ for al late calc in boost code
 
-
+#probably needs to be split and needs reworking for sure
 
 #this code may need to be seperated between g and od
+
+e <- 1
+for(i in df_od_pred_pts){
+  myRequest <- paste("UPDATE Skaters SET fantasy_score=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
 
 
 all_cons <- dbListConnections(MySQL())
