@@ -18,6 +18,9 @@ df_TAVG = data.frame(fetch(selection_TAVG, n = -1)) #dataframe
 selection_pred_pts = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
 df_pred_pts = data.frame(fetch(selection_pred_pts, n = -1)) #dataframe
 
+df_TAVG <- df_TAVG$mid_pred_fantasy_scr
+df_pred_pts <- df_pred_pts$pred_fantasy_score
+
 df_perform_class <- c()
 df_index <- c(1:length(df_TAVG))
 for (i in df_index) {
@@ -28,6 +31,14 @@ for (i in df_index) {
   }else {
     df_perform_class[i] = 'Nuetral'
   } 
+}
+
+#needs a duplicate for goalies
+e <- 1
+for(i in df_perform_class){
+  myRequest <- paste("UPDATE Skaters SET performance=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
 }
 
 all_cons <- dbListConnections(MySQL())
