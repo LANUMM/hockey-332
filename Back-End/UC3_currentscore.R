@@ -25,13 +25,42 @@ df_CTS = data.frame(fetch(selection_CTS, n = -1)) #dataframe
 selection_GP = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
 df_GP = data.frame(fetch(selection_GP, n = -1)) #dataframe
 
-pred_upd <- ((df_CTS * 56) / (df_GP))
+selection_CTS_g = dbSendQuery(mydb, "select * from Goalies") # remove ""? # select TAVG
+df_CTS_g = data.frame(fetch(selection_CTS_g, n = -1)) #dataframe
+selection_GP_g = dbSendQuery(mydb, "select * from Goalies") # remove ""? # select TAVG
+df_GP_g = data.frame(fetch(selection_GP_g, n = -1)) #dataframe
+
+
+df_CTS_g <- df_CTS_g$fantasy_score
+df_GP_g <- df_GP_g$gp
+df_pred_upd_g <- ((df_CTS_g * 56) / (df_GP_g))
 
 #loop end
-T_AVG <- mean(df_pred_upd) #df_pred_upd is output of loop
+T_AVG_g <- mean(df_pred_upd_g) #df_pred_upd is output of loop
 #push to sql, move to uc4
   #loop on team
   # fantasy score calc needed
+
+df_CTS <- df_CTS$fantasy_score
+df_GP <- df_GP$gp
+df_pred_upd <- ((df_CTS * 56) / (df_GP))
+
+#loop end
+T_AVG <- mean(df_pred_upd) #df_pred_upd is output of loop
+
+e <- 1
+for(i in T_AVG){
+  myRequest <- paste("UPDATE Skaters SET mid_pred_fantasy_scr=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
+
+e <- 1
+for(i in T_AVG_g){
+  myRequest <- paste("UPDATE Goalies SET mid_pred_fantasy_scr=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
 all_cons <- dbListConnections(MySQL())
 for (con in all_cons){
   dbDisconnect(con)
