@@ -54,7 +54,7 @@ for (i in df_index_g) {
   } 
 }
 
-#needs a duplicate for goalies
+
 e <- 1
 for(i in df_perform_class){
   myRequest <- paste("UPDATE Skaters SET performance=",i , "WHERE ", "rows=",e)
