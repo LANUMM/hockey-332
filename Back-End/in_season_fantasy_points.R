@@ -25,15 +25,29 @@ g_pred_p = 5*df_stats_g$so + .6*df_stats_g$sv + 5*df_stats_g$w
 
 #return both stats as CTS (fantasy points)
 
+df_od_pred_pts[which(is.na(df_od_pred_pts))] <- 0
+
+
+e <- 1
 for(i in df_od_pred_pts){
-  dbSendQuery(mydb, "UPDATE Skaters SET fantasy_score=5;")
+  myRequest <- paste("UPDATE Skaters SET fantasy_score=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
 }
 
-dbSendQuery(mydb, "UPDATE Skaters SET fantasy_score=5 WHERE ;")
-dbSendQuery(mydb, "UPDATE Skaters SET fantasy_score=5 WHERE ;")
+
+myRequest <- paste("UPDATE Skaters SET fantasy_score=",5.4 , "WHERE ", "rows=",1)
+dbSendQuery(mydb,myRequest)
+
+dbSendQuery(mydb, paste("UPDATE Skaters SET fantasy_score=6 WHERE row_names=1"))
+
+dbSendQuery(mydb, "INSERT INTO Skaters(fantasy_score) VALUES (4);")
 
 all_cons <- dbListConnections(MySQL())
 for (con in all_cons){
   dbDisconnect(con)
 }
+ paste("UPDATE Skaters(fantasy_score) SET VALUES(", paste(df_od_pred_pts, collapse = ", "),");")
+ paste("UPDATE Skaters SET fantasy_score=(3))
+
 
