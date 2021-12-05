@@ -23,31 +23,14 @@ df_stats_g = data.frame(fetch(selection_stats_g, n = -1)) #dataframe
 df_od_pred_pts <- 6*df_stats_od$g + 4*df_stats_od$a + 2*df_stats_od$ppp + (.9)*as.double(df_stats_od$sog) + 1*as.double(df_stats_od$blk)
 g_pred_p = 5*df_stats_g$so + .6*df_stats_g$sv + 5*df_stats_g$w
 
-#return both stats as CTS (fantasy points)
-
+# Inserting NA gives Errors
 df_od_pred_pts[which(is.na(df_od_pred_pts))] <- 0
 
-
+# Replace the fantasy_score column in Skaters with df_od_pred_pts
 e <- 1
 for(i in df_od_pred_pts){
   myRequest <- paste("UPDATE Skaters SET fantasy_score=",i , "WHERE ", "rows=",e)
   dbSendQuery(mydb,myRequest)
   e<- e+1
 }
-
-
-myRequest <- paste("UPDATE Skaters SET fantasy_score=",5.4 , "WHERE ", "rows=",1)
-dbSendQuery(mydb,myRequest)
-
-dbSendQuery(mydb, paste("UPDATE Skaters SET fantasy_score=6 WHERE row_names=1"))
-
-dbSendQuery(mydb, "INSERT INTO Skaters(fantasy_score) VALUES (4);")
-
-all_cons <- dbListConnections(MySQL())
-for (con in all_cons){
-  dbDisconnect(con)
-}
- paste("UPDATE Skaters(fantasy_score) SET VALUES(", paste(df_od_pred_pts, collapse = ", "),");")
- paste("UPDATE Skaters SET fantasy_score=(3))
-
 
