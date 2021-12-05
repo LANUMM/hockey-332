@@ -17,9 +17,15 @@ library(zoo, lib.loc"~/www/Hockey/rpkg")
 #REQUIRE ITERATION OVER  ALL PRLAYERS AND ALL STATS
 ## load data
 # we must connect to the SQL database and pull the table containing all player stats
-db = dbConnect(MySQL(), user='user', password='password', dbname='database_name', host='host') # remove '' when fields filled?
-selection_g = dbSendQuery(db, "select * from table_name") # remove ""? # select goalies only
-df_g = data.frame(fetch(selection_g, n = -1)) #dataframe of goalie stats
+mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = 'g1117489', host = 'mydb.ics.purdue.edu')
+on.exit(dbDisconnect(mydb))
+selection_g = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
+df_g = data.frame(fetch(selection_g, n = -1)) #dataframe
+
+all_cons <- dbListConnections(MySQL())
+for (con in all_cons){
+  dbDisconnect(con)
+}
 
 ## This section must iterate the target variable over all goalie statistics to report forecasts of each, for each goalie
 ## partition dataset
@@ -92,6 +98,11 @@ meanGoal <- mean(g_pred2)
 sdGoal <- sd(g_pred2)
 ZGoal <- ((g_pred2 - meanGoal) / (sdGoal))
 
-rank_result_g <- rank(Zgoal, na.last = TRUE, ties.method = "First")
+rank_result_g <- rank(Zgoal, na.last = TRUE, ties.method = "first")
+
+all_cons <- dbListConnections(MySQL())
+for (con in all_cons){
+  dbDisconnect(con)
+}
 
 ## End section

@@ -16,9 +16,10 @@ library(zoo, lib.loc"~/www/Hockey/rpkg")
 
 ## load data
 # we must connect to the SQL database and pull the table containing all player stats
-db = dbConnect(MySQL(), user='user', password='password', dbname='database_name', host='host') # remove '' when fields filled?
-selection_od = dbSendQuery(db, "select * from table_name") # remove ""? # select offense and defense players only
-df_od = data.frame(fetch(selection_od, n = -1)) # dataframe of offense and defense player stats
+mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = 'g1117489', host = 'mydb.ics.purdue.edu')
+on.exit(dbDisconnect(mydb))
+selection_od = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
+df_od = data.frame(fetch(selection_od, n = -1)) #dataframe
 
 ## This section must iterate the target variable over all o/d player statistics to report forecasts of each, for each player
 ## partition dataset
@@ -96,4 +97,9 @@ sdSkate <- sd(od_pred2)
 ZSkate <- ((od_pred2 - meanSkate) / (sdSkate))
 
 rank_result_od <- rank(ZSkate, na.last = TRUE, ties.method = "First")
+
+all_cons <- dbListConnections(MySQL())
+for (con in all_cons){
+  dbDisconnect(con)
+}
 #calc fantasy points and yreturn year as 2022

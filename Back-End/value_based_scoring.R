@@ -1,51 +1,22 @@
-library(caret) # definitely required
+library(caret, lib.loc"~/www/Hockey/rpkg") # definitely required
+library(data.table, lib.loc"~/www/Hockey/rpkg")
+library(dplyr, lib.loc"~/www/Hockey/rpkg") # definitely required
+library(ggplot2, lib.loc"~/www/Hockey/rpkg")
+library(lattice, lib.loc"~/www/Hockey/rpkg")
+library(magrittr, lib.loc"~/www/Hockey/rpkg")
+library(padr, lib.loc"~/www/Hockey/rpkg")
+library(Matrix, lib.loc"~/www/Hockey/rpkg")
+library(RcppRoll, lib.loc"~/www/Hockey/rpkg")
+library(RMySQL, lib.loc"~/www/Hockey/rpkg") # one of these SQL connections required
+library(xgboost, lib.loc"~/www/Hockey/rpkg") # definitely required
+library(zoo, lib.loc"~/www/Hockey/rpkg")
 
-library(data.table)
-
-library(dplyr) # definitely required
-
-library(ggplot2)
-
-library(lattice)
-
-library(magrittr)
-
-library(padr)
-
-library(Matrix)
-
-library(RcppRoll)
-
-library(RMySQL) # one of these SQL connections required
-
-library(RSQLite) # one of these SQL connections required
-
-library(xgboost) # definitely required
-
-library(zoo)
-
-library(stringr)
-
-library(MASS)
-
-library(ISLR)
-
-
-
-db = dbConnect(MySQL(), user='user', password='password', dbname='database_name', host='host') # remove '' when fields filled?
-
-# select od player rankings, id, fantasy points, position
-
-selection_od = dbSendQuery(db, "select * from table_name") # remove ""? # select offense and defense players only
-
-df_od = data.frame(fetch(selection_od, n = -1)) # dataframe of offense and defense player stats
-
-# select goalie player rankings, id, fantasy points
-
-selection_g = dbSendQuery(db, "select * from table_name") # remove ""? # select goalies only
-
-df_g = data.frame(fetch(selection_g, n = -1)) #dataframe of goalie stats
-
+mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = 'g1117489', host = 'mydb.ics.purdue.edu')
+on.exit(dbDisconnect(mydb))
+selection_od = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
+df_od = data.frame(fetch(selection_od, n = -1)) #dataframe
+selection_g = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
+df_g = data.frame(fetch(selection_g, n = -1)) #dataframe
 #rank is rank pulled from sql pertaining to sepcific player
 
 #pos is postition pulled
@@ -141,5 +112,8 @@ df_val_score3g = (g_pred2$fantasypointcol[rankg] / meanGoal) #add $ for al late 
 #this code may need to be seperated between g and od
 
 
-
+all_cons <- dbListConnections(MySQL())
+for (con in all_cons){
+  dbDisconnect(con)
+}
 

@@ -1,22 +1,22 @@
-library(caret) # definitely required
-library(data.table)
-library(dplyr) # definitely required
-library(ggplot2)
-library(lattice)
-library(magrittr)
-library(padr)
-library(Matrix)
-library(RcppRoll)
-library(RMySQL) # one of these SQL connections required
-library(RSQLite) # one of these SQL connections required
-library(xgboost) # definitely required
-library(zoo)
+library(caret, lib.loc"~/www/Hockey/rpkg") # definitely required
+library(data.table, lib.loc"~/www/Hockey/rpkg")
+library(dplyr, lib.loc"~/www/Hockey/rpkg") # definitely required
+library(ggplot2, lib.loc"~/www/Hockey/rpkg")
+library(lattice, lib.loc"~/www/Hockey/rpkg")
+library(magrittr, lib.loc"~/www/Hockey/rpkg")
+library(padr, lib.loc"~/www/Hockey/rpkg")
+library(Matrix, lib.loc"~/www/Hockey/rpkg")
+library(RcppRoll, lib.loc"~/www/Hockey/rpkg")
+library(RMySQL, lib.loc"~/www/Hockey/rpkg") # one of these SQL connections required
+library(xgboost, lib.loc"~/www/Hockey/rpkg") # definitely required
+library(zoo, lib.loc"~/www/Hockey/rpkg")
 
-db = dbConnect(MySQL(), user='user', password='password', dbname='database_name', host='host') # remove '' when fields filled? #needs to pull gaolies and skaters
-selection_TAVG = dbSendQuery(db, "select * from table_name") # remove ""? # select TAVG 
-df_TAVG = data.frame(fetch(selection_TAVG, n = -1)) #dataframe 
-selection_pred_pts = dbSendQuery(db, "select * from table_name") # remove ""? # select (preseason) fantasy points prediction (df_g/od_pred_pts)
-df_pred_pts = data.frame(fetch(selection_pred_pts, n = -1)) #dataframe 
+mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = 'g1117489', host = 'mydb.ics.purdue.edu')
+on.exit(dbDisconnect(mydb))
+selection_TAVG = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
+df_TAVG = data.frame(fetch(selection_TAVG, n = -1)) #dataframe
+selection_pred_pts = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
+df_pred_pts = data.frame(fetch(selection_pred_pts, n = -1)) #dataframe
 
 df_perform_class <- c()
 df_index <- c(1:length(df_TAVG))
@@ -29,4 +29,8 @@ for (i in df_index) {
     df_perform_class[i] = 'Nuetral'
   } 
 }
-#return df_perform_class to SQL (column)
+
+all_cons <- dbListConnections(MySQL())
+for (con in all_cons){
+  dbDisconnect(con)
+}
