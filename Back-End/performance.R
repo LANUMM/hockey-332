@@ -33,10 +33,38 @@ for (i in df_index) {
   } 
 }
 
+selection_TAVG_g = dbSendQuery(mydb, "select * from Goalies") # remove ""? # select TAVG
+df_TAVG_g = data.frame(fetch(selection_TAVG_g, n = -1)) #dataframe
+selection_pred_pts_g = dbSendQuery(mydb, "select * from Goalies") # remove ""? # select TAVG
+df_pred_pts_g = data.frame(fetch(selection_pred_pts_g, n = -1)) #dataframe
+
+df_TAVG_g <- df_TAVG_g$mid_pred_fantasy_scr
+df_pred_pts_g <- df_pred_pts_g$pred_fantasy_score
+
+df_perform_class_g <- c()
+
+df_index_g <- c(1:length(df_TAVG_g))
+for (i in df_index_g) {
+  if (df_TAVG_g[i] > (1.05 * df_pred_pts_g[i])) {
+    df_perform_class_g[i] = 'Good'
+  }else if (df_TAVG_g[i] < (.95 * df_pred_pts_g[i])) {
+    df_perform_class_g[i] = 'Poor'
+  }else {
+    df_perform_class_g[i] = 'Nuetral'
+  } 
+}
+
 #needs a duplicate for goalies
 e <- 1
 for(i in df_perform_class){
   myRequest <- paste("UPDATE Skaters SET performance=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
+
+e <- 1
+for(i in df_perform_class_g){
+  myRequest <- paste("UPDATE Goalies SET performance=",i , "WHERE ", "rows=",e)
   dbSendQuery(mydb,myRequest)
   e<- e+1
 }
