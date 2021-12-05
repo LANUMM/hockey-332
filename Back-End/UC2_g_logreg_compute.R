@@ -57,6 +57,14 @@ mean(predictions_bustg == test_g$"target variable")
 #this section will handle and output a g DF with predicted classification attributed
 
 ## LOGIC CONTROL AND SPECIAL CASE CHECKING FOR FINAL CLASSIFICATION
+#needs adjustment
+e <- 1
+for(i in T_AVG){
+  myRequest <- paste("UPDATE Skaters SET mid_pred_fantasy_scr=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
+
 all_cons <- dbListConnections(MySQL())
 for (con in all_cons){
   dbDisconnect(con)
