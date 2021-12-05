@@ -1,38 +1,53 @@
 ## XGBoost Implementation
 ## load packages; all may not be required
 #install.packages(c("caret", "dplyr", "ggplot2", "RMySQL", "xgboost"))
-library(caret, lib.loc"~/www/Hockey/rpkg") # definitely required
-library(data.table, lib.loc"~/www/Hockey/rpkg")
-library(dplyr, lib.loc"~/www/Hockey/rpkg") # definitely required
-library(ggplot2, lib.loc"~/www/Hockey/rpkg")
-library(lattice, lib.loc"~/www/Hockey/rpkg")
-library(magrittr, lib.loc"~/www/Hockey/rpkg")
-library(padr, lib.loc"~/www/Hockey/rpkg")
-library(Matrix, lib.loc"~/www/Hockey/rpkg")
-library(RcppRoll, lib.loc"~/www/Hockey/rpkg")
-library(RMySQL, lib.loc"~/www/Hockey/rpkg") # one of these SQL connections required
-library(xgboost, lib.loc"~/www/Hockey/rpkg") # definitely required
-library(zoo, lib.loc"~/www/Hockey/rpkg")
+#library(caret, lib.loc"~/www/Hockey/rpkg") # definitely required
+#library(data.table, lib.loc"~/www/Hockey/rpkg")
+#library(dplyr, lib.loc"~/www/Hockey/rpkg") # definitely required
+#library(ggplot2, lib.loc"~/www/Hockey/rpkg")
+#library(lattice, lib.loc"~/www/Hockey/rpkg")
+#library(magrittr, lib.loc"~/www/Hockey/rpkg")
+#library(padr, lib.loc"~/www/Hockey/rpkg")
+#library(Matrix, lib.loc"~/www/Hockey/rpkg")
+#library(RcppRoll, lib.loc"~/www/Hockey/rpkg")
+#library(RMySQL, lib.loc"~/www/Hockey/rpkg") # one of these SQL connections required
+#library(xgboost, lib.loc"~/www/Hockey/rpkg") # definitely required
+#library(zoo, lib.loc"~/www/Hockey/rpkg")
+
+require(devtools)
+
+require(caret) # definitely required *********************
+require(data.table)
+require(dplyr) # definitely required *********************
+require(ggplot2)
+require(lattice)
+require(magrittr)
+require(padr)
+require(Matrix)
+require(RcppRoll)
+require(RMySQL) # one of these SQL connections required
+require(RSQLite) # one of these SQL connections required
+require(xgboost) # definitely required #Problem*********************
+require(zoo)
+
+remove.packages('caret')
+install.version("caret", version="5.16-04")
 
 #REQUIRE ITERATION OVER  ALL PRLAYERS AND ALL STATS
 ## load data
 # we must connect to the SQL database and pull the table containing all player stats
 mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = 'g1117489', host = 'mydb.ics.purdue.edu')
 on.exit(dbDisconnect(mydb))
-selection_g = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
+selection_g = dbSendQuery(mydb, "select * from Goalies") # remove ""? # select TAVG
 df_g = data.frame(fetch(selection_g, n = -1)) #dataframe
 
-all_cons <- dbListConnections(MySQL())
-for (con in all_cons){
-  dbDisconnect(con)
-}
 
 ## This section must iterate the target variable over all goalie statistics to report forecasts of each, for each goalie
 ## partition dataset
 # currently set to 75/25 train/test
-trainindex_g = data.frame(createDataPartition("df_g$targetvariable", p = 0.75, list = F, times = 1))$Resample1 # should train/test selection be random or linear with time?
-train_g = data.frame(df_g[trainindex_g,])
-test_g = data.frame(df_g[-trainindex_g,])
+trainindex_g = data.frame(createDataPartition(df_g$a, p = 0.75, list = F, times = 1))$Resample1 # should train/test selection be random or linear with time?
+train_g = data.frame(df_g[ ,c(6:10)][trainindex_g,])
+test_g = data.frame(df_g[ ,c(6:10)][-trainindex_g,])
 
 ## XGBoost training
 g_trainer = xgboost::xgb.DMatrix(as.matrix(train_g))
@@ -89,7 +104,7 @@ forecast_list  <- list(
 class(forecast_list) <- "forecast"
 forecast::autoplot(forecast_list)
 
-g_pred_p = 5*df_g_pred$shutouts + .6*df_g_pred$saves + 5*df_g_pred$win
+g_pred_p = 5*df_stats_g$so + .6*df_stats_g$sv + 5*df_stats_g$w
 g_pred2 <- g_pred_p
 g_pred2[g_pred2==0] <- NA
 g_pred2 <- g_pred2[-c(is.na(g_pred2))]
