@@ -13,9 +13,6 @@
 #library(RMySQL, lib.loc"~/www/Hockey/rpkg") # one of these SQL connections required
 #library(xgboost, lib.loc"~/www/Hockey/rpkg") # definitely required
 #library(zoo, lib.loc"~/www/Hockey/rpkg")
-
-require(devtools)
-
 require(caret) # definitely required *********************
 require(data.table)
 require(dplyr) # definitely required *********************
@@ -29,9 +26,6 @@ require(RMySQL) # one of these SQL connections required
 require(RSQLite) # one of these SQL connections required
 require(xgboost) # definitely required #Problem*********************
 require(zoo)
-
-remove.packages('caret')
-install.version("caret", version="5.16-04")
 
 #REQUIRE ITERATION OVER  ALL PRLAYERS AND ALL STATS
 ## load data
@@ -74,7 +68,7 @@ xgb_grid <- base::expand.grid(
     subsample = 1
   ))
 
-xgb_model <- caret::train(
+xgb_model <- train(
   g_trainer, tv_train_g,
   trControl = xgb_trcontrol,
   tuneGrid = xgb_grid,
