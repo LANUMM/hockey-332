@@ -11,10 +11,29 @@ library(RMySQL) # one of these SQL connections required
 library(RSQLite) # one of these SQL connections required
 library(xgboost) # definitely required
 library(zoo)
+library(caret, lib.loc"~/www/Hockey/rpkg") # definitely required
+library(data.table, lib.loc"~/www/Hockey/rpkg")
+library(dplyr, lib.loc"~/www/Hockey/rpkg") # definitely required
+library(ggplot2, lib.loc"~/www/Hockey/rpkg")
+library(lattice, lib.loc"~/www/Hockey/rpkg")
+library(magrittr, lib.loc"~/www/Hockey/rpkg")
+library(padr, lib.loc"~/www/Hockey/rpkg")
+library(Matrix, lib.loc"~/www/Hockey/rpkg")
+library(RcppRoll, lib.loc"~/www/Hockey/rpkg")
+library(RMySQL, lib.loc"~/www/Hockey/rpkg") # one of these SQL connections required
+library(xgboost, lib.loc"~/www/Hockey/rpkg") # definitely required
+library(zoo, lib.loc"~/www/Hockey/rpkg")
+
 # PULL FROM A FANTASY TEAM, NOT PLAYER ID
 db = dbConnect(MySQL(), user='user', password='password', dbname='database_name', host='host') # remove '' when fields filled?
 selection_TAVG = dbSendQuery(db, "select * from table_name") # remove ""? # select offense and defense players only
 df_TAVG = data.frame(fetch(selection_TAVG, n = -1)) # dataframe of offense and defense player stats
+mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = 'g1117489', host = 'mydb.ics.purdue.edu')
+on.exit(dbDisconnect(mydb))
+selection_TAVG = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
+df_TAVG = data.frame(fetch(selection_TAVG, n = -1)) #dataframe
+
+
 # ABOVE MUST BE ITERATED OVER A LEAGUE
 df_TAVG = c(10,11,12,10,9,12,15,14)
 num_teams <- length(df_TAVG)
@@ -31,4 +50,8 @@ matched_grades <- cbind(match_sort,sorted_df)
 print(matched_grades)
 # PUSH MATCHED_GRADES WITH
 
+all_cons <- dbListConnections(MySQL())
+for (con in all_cons){
+  dbDisconnect(con)
+}
 #check 
