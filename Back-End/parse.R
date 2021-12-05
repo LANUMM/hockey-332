@@ -7,7 +7,7 @@ capture<-str_match_all(data,"\\u0029(.+)\\s\\u002D\\s(.+)\\s(.+)\\s\\u0028([A-Za
 names<-c("DraftTeam","FirstName","LastName","Team","Posistion")
 temp<-do.call(rbind,capture)
 df<-data.frame(DraftTeam=temp[,2],FirstName=temp[,3],LastName=temp[,4],Team=temp[,5],Position=temp[,6])
-write.csv(df,"~/Hockey/files", row.names = FALSE)
+write.csv(df,"~/www/Hockey/files/parseDF", row.names = FALSE)
 png("~/www/Hockey/test1.png", height = 50*nrow(df), width = 200*ncol(df))
 grid.table(df)
 dev.off()

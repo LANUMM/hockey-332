@@ -1,14 +1,15 @@
 require("RMySQL")
 library(RMySQL)
 
-mydb <- dbConnect(MySQL(), user = 'g1117489', password = '4jU2vUv9', dbname = 'g1117489', host = 'mydb.ics.purdue.edu')
+mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = 'g1117489', host = 'mydb.ics.purdue.edu')
 on.exit(dbDisconnect(mydb))
 
 #get input DF from parsed function 
+parsedDF <- read.csv("~/www/Hockey/files/parseDF")
 
 
 #get midseasonRankings from DB 
-
+selection_rank = db
 
 
 
