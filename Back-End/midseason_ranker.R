@@ -15,8 +15,11 @@ mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = '
 on.exit(dbDisconnect(mydb))
 selection_TAVG = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
 df_TAVG = data.frame(fetch(selection_TAVG, n = -1)) #dataframe
+selection_TAVG_g = dbSendQuery(mydb, "select * from Goalies") # remove ""? # select TAVG
+df_TAVG_g = data.frame(fetch(selection_TAVG_g, n = -1)) #dataframe
 
-ALl_pred2 <- df_TAVG
+
+ALl_pred2 <- df_TAVG$mid_pred_fantasy_scr
 All_pred2[All_pred2==0] <- NA
 All_pred2 <- All_pred2[-c(is.na(All_pred2))]
 meanAll <- mean(all_pred2)
@@ -26,6 +29,27 @@ rank_result <- rank(ZAll, na.last = TRUE, ties.method = "first")
 #return rank result midseason
 #line 21 error for no reason
 
+ALl_pred2_g <- df_TAVG_g$mid_pred_fantasy_scr
+All_pred2_g[All_pred2_g==0] <- NA
+All_pred2_g <- All_pred2_g[-c(is.na(All_pred2_g))]
+meanAll_g <- mean(all_pred2_g)
+sdAll_g <- sd(all_pred2_g)
+ZAll_g <- ((all_pred2_g - meanAll_g) / (sdAll_g))
+rank_result_g <- rank(ZAll_g, na.last = TRUE, ties.method = "first")
+
+e <- 1
+for(i in rank_result){
+  myRequest <- paste("UPDATE Skaters SET mid_rank=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
+
+e <- 1
+for(i in rank_result_g){
+  myRequest <- paste("UPDATE Goalies SET mid_rank=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
 all_cons <- dbListConnections(MySQL())
 for (con in all_cons){
   dbDisconnect(con)
