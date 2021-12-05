@@ -14,9 +14,24 @@ library(zoo, lib.loc"~/www/Hockey/rpkg")
 # PULL FROM A FANTASY TEAM, NOT PLAYER ID
 mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = 'g1117489', host = 'mydb.ics.purdue.edu')
 on.exit(dbDisconnect(mydb))
+selection_leagueId = dbSendQuery(mydb, "select * from League") # remove ""? # select TAVG
+df_leagueId = data.frame(fetch(selection_leagueId, n = -1)) #dataframe
 selection_TAVG = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
 df_TAVG = data.frame(fetch(selection_TAVG, n = -1)) #dataframe
 
+myTeamScore <- data.frame()
+for (i in df_league$league_id) {
+  myRequest <- paste("SELECT * from Team WHERE league_id=",i)
+  selection_TeamId = dbSendQuery(mydb, myRequest) # remove ""? # select TAVG
+  df_Team = data.frame(fetch(selection_TeamId, n = -1)) #dataframe
+  df_TeamId <- df_Team$team_id
+  for(z in df_TeamId){
+    
+  }
+  
+  
+}
+  
 
 # ABOVE MUST BE ITERATED OVER A LEAGUE
 df_TAVG = c(10,11,12,10,9,12,15,14)
@@ -33,6 +48,13 @@ match_sort <- sort(df_TAVG, decreasing = T)
 matched_grades <- cbind(match_sort,sorted_df)
 print(matched_grades)
 # PUSH MATCHED_GRADES WITH
+
+e <- 1
+for(i in df_od_pred_pts){
+  myRequest <- paste("UPDATE Skaters SET fantasy_score=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
 
 
 all_cons <- dbListConnections(MySQL())
