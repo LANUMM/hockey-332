@@ -1,18 +1,18 @@
 ##Boom/Bust OD Classifier
 ## load packages; all may not be required
 #install.packages(c("caret", "dplyr", "ggplot2", "RMySQL", "xgboost"))
-library(caret, lib.loc"~/www/Hockey/rpkg") # definitely required
-library(data.table, lib.loc"~/www/Hockey/rpkg")
-library(dplyr, lib.loc"~/www/Hockey/rpkg") # definitely required
-library(ggplot2, lib.loc"~/www/Hockey/rpkg")
-library(lattice, lib.loc"~/www/Hockey/rpkg")
-library(magrittr, lib.loc"~/www/Hockey/rpkg")
-library(padr, lib.loc"~/www/Hockey/rpkg")
-library(Matrix, lib.loc"~/www/Hockey/rpkg")
-library(RcppRoll, lib.loc"~/www/Hockey/rpkg")
-library(RMySQL, lib.loc"~/www/Hockey/rpkg") # one of these SQL connections required
-library(xgboost, lib.loc"~/www/Hockey/rpkg") # definitely required
-library(zoo, lib.loc"~/www/Hockey/rpkg")
+require(caret, lib.loc"~/www/Hockey/rpkg") # definitely required
+require(data.table, lib.loc"~/www/Hockey/rpkg")
+require(dplyr, lib.loc"~/www/Hockey/rpkg") # definitely required
+require(ggplot2, lib.loc"~/www/Hockey/rpkg")
+require(lattice, lib.loc"~/www/Hockey/rpkg")
+require(magrittr, lib.loc"~/www/Hockey/rpkg")
+require(padr, lib.loc"~/www/Hockey/rpkg")
+require(Matrix, lib.loc"~/www/Hockey/rpkg")
+require(RcppRoll, lib.loc"~/www/Hockey/rpkg")
+require(RMySQL, lib.loc"~/www/Hockey/rpkg") # one of these SQL connections required
+require(xgboost, lib.loc"~/www/Hockey/rpkg") # definitely required
+require(zoo, lib.loc"~/www/Hockey/rpkg")
 
 
 ## load data
@@ -74,6 +74,10 @@ mean(predictions_bustod == test_od$"target variable")
 
 ## LOGIC CONTROL AND SPECIAL CASE CHECKING FOR FINAL CLASSIFICATION
 #needs adjustment
+
+###END BUST
+
+##Disconnect
 e <- 1
 for(i in T_AVG){
   myRequest <- paste("UPDATE Skaters SET mid_pred_fantasy_scr=",i , "WHERE ", "rows=",e)
@@ -85,4 +89,3 @@ all_cons <- dbListConnections(MySQL())
 for (con in all_cons){
   dbDisconnect(con)
 }
-###END BUST
