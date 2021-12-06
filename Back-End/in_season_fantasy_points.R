@@ -34,3 +34,18 @@ for(i in df_od_pred_pts){
   e<- e+1
 }
 
+
+df <- data.frame(team=c(),score=c())
+df$team <- append(df$team, 1)
+df$team
+
+mystat <- "team"
+
+teamSumScore <- function(league_id, statCol){
+  scoreDF <- data.frame(team_id=c(),score=c())
+  
+}
+
+
+
+

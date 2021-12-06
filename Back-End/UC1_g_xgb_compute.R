@@ -33,7 +33,8 @@ require(zoo)
 # we must connect to the SQL database and pull the table containing all player stats
 mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = 'g1117489', host = 'mydb.ics.purdue.edu')
 on.exit(dbDisconnect(mydb))
-selection_g = dbSendQuery(mydb, "select * from Goalies") # remove ""? # select TAVG
+myReq <- paste("SELECT * FROM Goalies")
+selection_g = dbSendQuery(mydb, myReq) # remove ""? # select TAVG
 df_g = data.frame(fetch(selection_g, n = -1)) #dataframe
 
 
@@ -41,8 +42,8 @@ df_g = data.frame(fetch(selection_g, n = -1)) #dataframe
 ## partition dataset
 # currently set to 75/25 train/test
 trainindex_g = data.frame(createDataPartition(df_g$a, p = 0.75, list = F, times = 1))$Resample1 # should train/test selection be random or linear with time?
-train_g = data.frame(df_g[ ,c(6:10)][trainindex_g,])
-test_g = data.frame(df_g[ ,c(6:10)][-trainindex_g,])
+train_g = data.frame(df_g[ ,c(7:11)][trainindex_g,])
+test_g = data.frame(df_g[ ,c(7:11)][-trainindex_g,])
 
 ## XGBoost training
 g_trainer = xgboost::xgb.DMatrix(as.matrix(train_g))

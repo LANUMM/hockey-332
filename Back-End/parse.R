@@ -10,6 +10,7 @@ library(gridExtra, lib.loc="~/www/Hockey/rpkg")
 library(stringi, lib.loc="~/www/Hockey/rpkg")
 library(stringr, lib.loc="~/www/Hockey/rpkg")
 library(gridExtra, lib.loc="~/www/Hockey/rpkg")
+library(RMySQL, lib.loc"~/www/Hockey/rpkg")
 
 setwd("~/www/Hockey/files")
 data=readLines('myfile')
