@@ -41,13 +41,13 @@ df_g = data.frame(fetch(selection_g, n = -1)) #dataframe
 ## partition dataset
 # currently set to 75/25 train/test
 trainindex_g = data.frame(createDataPartition(df_g$a, p = 0.75, list = F, times = 1))$Resample1 # should train/test selection be random or linear with time?
-train_g = data.frame(df_g[ ,c(6:10)][trainindex_g,])
-test_g = data.frame(df_g[ ,c(6:10)][-trainindex_g,])
+train_g = data.frame(df_g[ ,c(7:11)][trainindex_g,])
+test_g = data.frame(df_g[ ,c(7:11)][-trainindex_g,])
 
 ## XGBoost training
 g_trainer = xgboost::xgb.DMatrix(as.matrix(train_g))
 g_pred = xgboost::xgb.DMatrix(as.matrix(test_g))
-tv_train_g = train_g$'targetvariable'
+tv_train_g = train_g$a
 
 ## XGBoost Implementation
 xgb_trcontrol <- caret::trainControl(
@@ -70,7 +70,7 @@ xgb_grid <- base::expand.grid(
   ))
 
 xgb_model <- train(
-  g_trainer, tv_train_g,
+  g_trainer, y = tv_train_g,
   trControl = xgb_trcontrol,
   tuneGrid = xgb_grid,
   method = "xgbTree",

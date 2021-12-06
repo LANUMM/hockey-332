@@ -39,8 +39,8 @@ df_od = data.frame(fetch(selection_od, n = -1)) #dataframe
 ## partition dataset
 # currently set to 75/25 train/test
 trainindex_od = data.frame(createDataPartition("df_od$targetvariable", p = 0.75, list = F, times = 1))$Resample1 # should train/test selection be random or linear with time?
-train_od = data.frame(df_od[trainindex_od,])
-test_od = data.frame(df_od[-trainindex_od,])
+train_od = data.frame(df_od[ ,c(8:20)][trainindex_od, ])
+test_od = data.frame(df_od[ ,c(8:20)][-trainindex_od,])
 
 ## XGBoost training
 od_trainer = xgboost::xgb.DMatrix(as.matrix(train_od))
