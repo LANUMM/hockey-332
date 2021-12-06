@@ -4,6 +4,7 @@
 require(caret, lib.loc"~/www/Hockey/rpkg") # definitely required
 require(data.table, lib.loc"~/www/Hockey/rpkg")
 require(dplyr, lib.loc"~/www/Hockey/rpkg") # definitely required
+require(forecast, lib.loc"~/www/Hockey/rpkg")
 require(ggplot2, lib.loc"~/www/Hockey/rpkg")
 require(lattice, lib.loc"~/www/Hockey/rpkg")
 require(magrittr, lib.loc"~/www/Hockey/rpkg")
@@ -98,7 +99,7 @@ ZSkate <- ((od_pred2 - meanSkate) / (sdSkate))
 
 rank_result_od <- rank(ZSkate, na.last = TRUE, ties.method = "First")
 
-## Disconnect
+##Push to DB and Disconnect
 all_cons <- dbListConnections(MySQL())
 for (con in all_cons){
   dbDisconnect(con)

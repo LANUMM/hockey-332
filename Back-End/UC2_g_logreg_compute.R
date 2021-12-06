@@ -19,9 +19,32 @@ require(zoo, lib.loc"~/www/Hockey/rpkg")
 # we must connect to the SQL database and pull the table containing all player stats
 mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = 'g1117489', host = 'mydb.ics.purdue.edu')
 on.exit(dbDisconnect(mydb))
-selection_g = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
+selection_g = dbSendQuery(mydb, "select * from Goalies") # remove ""? # select TAVG
 df_g = data.frame(fetch(selection_g, n = -1)) #dataframe
 ###NOTE: PREDICTOR VARIABLES MUST BE FLOAT OR CATEGORICAL, MAY NEED TO RECAST
+
+##Model must iterate over every player
+##Binary Variable Construction
+#tm_compare, gp_boom_compare, gp_bust_compare must be iterated over every pair of sequential years
+#Interseason Team Change
+#need to compare prev year team (2021) to next year team; str_detect not necessary
+tm_1 = df_g$tm["how get year 1?"]
+tm_2 = df_g$tm["how get year 2?"]
+tm_compare
+
+#Games played increase excl. (boom)
+#need to compare prev year gp (2021) to next year gp
+gp_bb_1 = df_g$gp["how get year 1?"]
+gp_bb_2 = df_g$gp["how get year 1?"]
+gp_boom_compare
+#Games played decrease or equal (bust)
+gp_bust_compare
+
+# Optimal Age Checker
+opt_age = (df_g$age == 28)
+
+# Rookie Checker
+rookie_age = (df_g$age == 23)
 
 ## TRAIN/TEST PARTITIONING
 trainindex_g = data.frame(createDataPartition("df_g$targetvariable", p = 0.75, list = F, times = 1))$Resample1 # should train/test selection be random or linear with time?
@@ -51,7 +74,7 @@ model_bustg <- glm("target variable" ~., data = train_g, family = binomial)
 probs_bustg <- model_bustg %>% predict(test_g, type = "response")
 predictions_bustg <- ifelse(probs_bustg > 0.5, "bust", "no") #can change these to 1/0 later; flip order for bust?
 # Assess Model Accuracy
-mean(predictions_bustg == test_g$"target variable")
+accur = mean(predictions_bustg == test_g$"target variable")
 
 ## ORGANIZE RESULT AND/OR POST PROCESSING
 #this section will handle and output a g DF with predicted classification attributed
@@ -61,7 +84,7 @@ mean(predictions_bustg == test_g$"target variable")
 
 ###END BUST
 
-##Disconnect
+##Push to DB and Disconnect
 e <- 1
 for(i in T_AVG){
   myRequest <- paste("UPDATE Skaters SET mid_pred_fantasy_scr=",i , "WHERE ", "rows=",e)
