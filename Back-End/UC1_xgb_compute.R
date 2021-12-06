@@ -1,19 +1,32 @@
 ## XGBoost Implementation
 ## load packages; all may not be required
 #install.packages(c("caret", "dplyr", "ggplot2", "RMySQL", "xgboost"))
-require(caret, lib.loc"~/www/Hockey/rpkg") # definitely required
-require(data.table, lib.loc"~/www/Hockey/rpkg")
-require(dplyr, lib.loc"~/www/Hockey/rpkg") # definitely required
-require(forecast, lib.loc"~/www/Hockey/rpkg")
-require(ggplot2, lib.loc"~/www/Hockey/rpkg")
-require(lattice, lib.loc"~/www/Hockey/rpkg")
-require(magrittr, lib.loc"~/www/Hockey/rpkg")
-require(padr, lib.loc"~/www/Hockey/rpkg")
-require(Matrix, lib.loc"~/www/Hockey/rpkg")
-require(RcppRoll, lib.loc"~/www/Hockey/rpkg")
-require(RMySQL, lib.loc"~/www/Hockey/rpkg") # one of these SQL connections required
-require(xgboost, lib.loc"~/www/Hockey/rpkg") # definitely required
-require(zoo, lib.loc"~/www/Hockey/rpkg")
+#require(caret, lib.loc"~/www/Hockey/rpkg") # definitely required
+#require(data.table, lib.loc"~/www/Hockey/rpkg")
+#require(dplyr, lib.loc"~/www/Hockey/rpkg") # definitely required
+#require(forecast, lib.loc"~/www/Hockey/rpkg")
+#require(ggplot2, lib.loc"~/www/Hockey/rpkg")
+#require(lattice, lib.loc"~/www/Hockey/rpkg")
+#require(magrittr, lib.loc"~/www/Hockey/rpkg")
+#require(padr, lib.loc"~/www/Hockey/rpkg")
+#require(Matrix, lib.loc"~/www/Hockey/rpkg")
+#require(RcppRoll, lib.loc"~/www/Hockey/rpkg")
+#require(RMySQL, lib.loc"~/www/Hockey/rpkg") # one of these SQL connections required
+#require(xgboost, lib.loc"~/www/Hockey/rpkg") # definitely required
+#require(zoo, lib.loc"~/www/Hockey/rpkg")
+require(caret) # definitely required *********************
+require(data.table)
+require(dplyr) # definitely required *********************
+require(forecast)
+require(ggplot2)
+require(lattice)
+require(magrittr)
+require(padr)
+require(Matrix)
+require(RcppRoll)
+require(RMySQL) # one of these SQL connections required
+require(xgboost) # definitely required #Problem*********************
+require(zoo)
 
 ## load data
 # we must connect to the SQL database and pull the table containing all player stats
@@ -99,9 +112,12 @@ ZSkate <- ((od_pred2 - meanSkate) / (sdSkate))
 
 rank_result_od <- rank(ZSkate, na.last = TRUE, ties.method = "First")
 
+error <- mean(as.numeric(pred > 0.5) != test$"target variable")
+
 ##Push to DB and Disconnect
 all_cons <- dbListConnections(MySQL())
 for (con in all_cons){
   dbDisconnect(con)
 }
 #calc fantasy points and yreturn year as 2022
+

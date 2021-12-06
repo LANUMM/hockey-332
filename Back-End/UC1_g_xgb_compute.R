@@ -110,6 +110,8 @@ ZGoal <- ((g_pred2 - meanGoal) / (sdGoal))
 
 rank_result_g <- rank(Zgoal, na.last = TRUE, ties.method = "first")
 
+error <- mean(as.numeric(pred > 0.5) != test$"target variable")
+
 ##Push to DB and Disconnect
 all_cons <- dbListConnections(MySQL())
 for (con in all_cons){
