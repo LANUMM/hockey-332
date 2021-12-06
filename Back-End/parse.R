@@ -1,3 +1,9 @@
+#TODO: Error check parse data for logic errors
+#TODO: Input year of draft as user input and consider in error check ^ 
+#TODO: Clean back up so it runs on the Server
+
+
+
 library(stringi, lib.loc="~/www/Hockey/rpkg")
 library(stringr, lib.loc="~/www/Hockey/rpkg")
 library(gridExtra, lib.loc="~/www/Hockey/rpkg")
@@ -5,19 +11,9 @@ library(stringi, lib.loc="~/www/Hockey/rpkg")
 library(stringr, lib.loc="~/www/Hockey/rpkg")
 library(gridExtra, lib.loc="~/www/Hockey/rpkg")
 
-#DELETE LOCAL LIBRARY STATEMENTS LATER
-library(stringi)
-library(stringr)
-library(gridExtra)
-library(stringi)
-library(stringr)
-library(gridExtra)
 setwd("~/www/Hockey/files")
-
-data=readLines('C:\\Users\\matth\\Downloads\\mock1.txt')
-
-
-capture<-str_match_all(data,"\\u0029(.+)\\s\\u002D\\s(.+)\\s(.+)\\s\\u0028([A-Za-z]+)\\s\\u002D\\s([A-Za-z]+)")
+data=readLines('myfile')
+capture<-str_match_all(data,"\\u0029\\s(.+)\\s\\u002D\\s(.+)\\s(.+)\\s\\u0028([A-Za-z]+)\\s\\u002D\\s([A-Za-z]+)")
 names<-c("DraftTeam","FirstName","LastName","Team","Posistion")
 temp<-do.call(rbind,capture)
 df<-data.frame(DraftTeam=temp[,2],FirstName=temp[,3],LastName=temp[,4],Team=temp[,5],Position=temp[,6])
@@ -28,13 +24,14 @@ df$LastName <- lapply(df$LastName,str_remove_all,pattern="'")
 mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = 'g1117489', host = 'mydb.ics.purdue.edu')
 on.exit(dbDisconnect(mydb))
 
+#Insert parsed data into DB
 draftToDB(df)
-#Save so it can be read by ideal draft
-#write.csv(df,"~/www/Hockey/files/parseDF", row.names = FALSE)
-#png("~/www/Hockey/test1.png", height = 50*nrow(df), width = 200*ncol(df))
-grid.table(df)
-dev.off()
 
+#Close connections
+all_cons <- dbListConnections(MySQL())
+for (con in all_cons){
+  dbDisconnect(con)
+}
 #######################################################################################
 # Function to insert the uploaded leauge into the DB
 # Input: data frame of leauge info
@@ -48,21 +45,46 @@ draftToDB <- function(myDF){
   #Add pick
   myDF$pick <- c(1:nrow(myDF))
   myDF$player_id <- c()
-  #assign player_id
   
+  #assign player_id
   for(p in myDF$pick){
     myDF$player_id[p] <-findPlayerID(myDF$FirstName[p], myDF$LastName[p], myDF$Position[p], thisYear)
   }
+  # Have user input for Year
+  #RUN ERROR CHECK CODE
   
-  print(myDF)
+  #Get the leauge ID
+  myReq <- paste("SELECT MAX(league_id) FROM League")
+  requestData = dbSendQuery(mydb,myReq)
+  latestLeagueID = data.frame(fetch(requestData, n = -1))[[1]] 
   
-  
-  
-  #Close DB Connection
-  all_cons <- dbListConnections(MySQL())
-  for (con in all_cons){
-    dbDisconnect(con)
+  #For each team update Team table (team_id AUTO, leauge_id, Team name) (get team_id)
+  ##and then Roster table for each player on the team (team_id, player_id, year, pick) 
+  for(t in unique(myDF$DraftTeam)){
+    teamData <- myDF[myDF$DraftTeam == t, ]
+    
+    #Update Team table
+    myReq <- paste("INSERT INTO Team(league_id, team_name) VALUES(",latestLeagueID, ",'",teamData$DraftTeam[1],"')", sep="")
+    print(paste("Team table statements:", myReq))
+     dbSendQuery(mydb,myReq)
+    
+    #Update Roster
+    
+      #Get latest teamID 
+    myReq <- paste("SELECT MAX(team_id) FROM Team")
+    requestData = dbSendQuery(mydb,myReq)
+    latestTeamID = data.frame(fetch(requestData, n = -1))[[1]] 
+    
+    print(latestTeamID)
+    #Update Roster table
+    for(i in c(1:nrow(teamData))){
+      myReq <- paste("INSERT INTO Roster(team_id, player_id, year) VALUES(",latestTeamID, ",",teamData$player_id[i],",",thisYear,")", sep="")
+      print(myReq)
+      dbSendQuery(mydb,myReq)
+    }
+    
   }
+  
 }
 
 #######################################################################################
@@ -131,8 +153,3 @@ findPlayerID <- function(fName, lName, pos, year){
     return(0)
   }
 }
-
-
-
-
-
