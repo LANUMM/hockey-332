@@ -59,7 +59,7 @@ xgb_trcontrol <- caret::trainControl(
   allowParallel = TRUE,
   verboseIter = FALSE,
   returnData = FALSE
-  )
+)
 
 xgb_grid <- base::expand.grid(
   list(
@@ -71,16 +71,16 @@ xgb_grid <- base::expand.grid(
     subsample = c(0.5, 0.75, 1),
     min_child_weight = c(1, 2, 3), 
     colsample_bytree = 1
-    ))
+  ))
 
 xgb_model <- train(
   od_trainer,
   tv_train_od,
   method = "xgbTree",
   trControl = xgb_trcontrol,
-  tuneGrid = xgb_grid,
+  tuneGrid = xgb_grid[1:7, ],
   scale_pos_weight = 0.32
-  )
+)
 
 fitted <- xgb_model %>%
   stats::predict(od_trainer) %>%
@@ -106,14 +106,11 @@ forecast::autoplot(forecast_list)
 
 #see goalie comment here for info
 df_od_pred_pts <- 6*df_od_pred$goals + 4*df_od_pred$assists + 2*df_od_pred$ppp + .9*df_od_pred$sog + 1*df_od_pred$blocks
-print(df_od_pred_pts)
 od_pred2 <- df_od_pred_pts
 od_pred2[od_pred2==0] <- NA
 od_pred2 <- od_pred2[-c(is.na(od_pred2))]
-head(og_pred2)
 
 meanSkate <- mean(od_pred2)
-print(meanSkate)
 sdSkate <- sd(od_pred2)
 ZSkate <- ((od_pred2 - meanSkate) / (sdSkate))
 
