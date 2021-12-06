@@ -1,21 +1,23 @@
 ## XGBoost Implementation
 ## load packages; all may not be required
 #install.packages(c("caret", "dplyr", "ggplot2", "RMySQL", "xgboost"))
-#library(caret, lib.loc"~/www/Hockey/rpkg") # definitely required
-#library(data.table, lib.loc"~/www/Hockey/rpkg")
-#library(dplyr, lib.loc"~/www/Hockey/rpkg") # definitely required
-#library(ggplot2, lib.loc"~/www/Hockey/rpkg")
-#library(lattice, lib.loc"~/www/Hockey/rpkg")
-#library(magrittr, lib.loc"~/www/Hockey/rpkg")
-#library(padr, lib.loc"~/www/Hockey/rpkg")
-#library(Matrix, lib.loc"~/www/Hockey/rpkg")
-#library(RcppRoll, lib.loc"~/www/Hockey/rpkg")
-#library(RMySQL, lib.loc"~/www/Hockey/rpkg") # one of these SQL connections required
-#library(xgboost, lib.loc"~/www/Hockey/rpkg") # definitely required
-#library(zoo, lib.loc"~/www/Hockey/rpkg")
+#require(caret, lib.loc"~/www/Hockey/rpkg") # definitely required
+#require(data.table, lib.loc"~/www/Hockey/rpkg")
+#require(dplyr, lib.loc"~/www/Hockey/rpkg") # definitely required
+#require(forecast, lib.loc"~/www/Hockey/rpkg")
+#require(ggplot2, lib.loc"~/www/Hockey/rpkg")
+#require(lattice, lib.loc"~/www/Hockey/rpkg")
+#require(magrittr, lib.loc"~/www/Hockey/rpkg")
+#require(padr, lib.loc"~/www/Hockey/rpkg")
+#require(Matrix, lib.loc"~/www/Hockey/rpkg")
+#require(RcppRoll, lib.loc"~/www/Hockey/rpkg")
+#require(RMySQL, lib.loc"~/www/Hockey/rpkg") # one of these SQL connections required
+#require(xgboost, lib.loc"~/www/Hockey/rpkg") # definitely required
+#require(zoo, lib.loc"~/www/Hockey/rpkg")
 require(caret) # definitely required *********************
 require(data.table)
 require(dplyr) # definitely required *********************
+require(forecast)
 require(ggplot2)
 require(lattice)
 require(magrittr)
@@ -23,7 +25,6 @@ require(padr)
 require(Matrix)
 require(RcppRoll)
 require(RMySQL) # one of these SQL connections required
-require(RSQLite) # one of these SQL connections required
 require(xgboost) # definitely required #Problem*********************
 require(zoo)
 
@@ -109,6 +110,9 @@ ZGoal <- ((g_pred2 - meanGoal) / (sdGoal))
 
 rank_result_g <- rank(Zgoal, na.last = TRUE, ties.method = "first")
 
+error <- mean(as.numeric(pred > 0.5) != test$"target variable")
+
+##Push to DB and Disconnect
 all_cons <- dbListConnections(MySQL())
 for (con in all_cons){
   dbDisconnect(con)

@@ -1,18 +1,18 @@
 ##Boom/Bust OD Classifier
 ## load packages; all may not be required
 #install.packages(c("caret", "dplyr", "ggplot2", "RMySQL", "xgboost"))
-library(caret, lib.loc"~/www/Hockey/rpkg") # definitely required
-library(data.table, lib.loc"~/www/Hockey/rpkg")
-library(dplyr, lib.loc"~/www/Hockey/rpkg") # definitely required
-library(ggplot2, lib.loc"~/www/Hockey/rpkg")
-library(lattice, lib.loc"~/www/Hockey/rpkg")
-library(magrittr, lib.loc"~/www/Hockey/rpkg")
-library(padr, lib.loc"~/www/Hockey/rpkg")
-library(Matrix, lib.loc"~/www/Hockey/rpkg")
-library(RcppRoll, lib.loc"~/www/Hockey/rpkg")
-library(RMySQL, lib.loc"~/www/Hockey/rpkg") # one of these SQL connections required
-library(xgboost, lib.loc"~/www/Hockey/rpkg") # definitely required
-library(zoo, lib.loc"~/www/Hockey/rpkg")
+require(caret, lib.loc"~/www/Hockey/rpkg") # definitely required
+require(data.table, lib.loc"~/www/Hockey/rpkg")
+require(dplyr, lib.loc"~/www/Hockey/rpkg") # definitely required
+require(ggplot2, lib.loc"~/www/Hockey/rpkg")
+require(lattice, lib.loc"~/www/Hockey/rpkg")
+require(magrittr, lib.loc"~/www/Hockey/rpkg")
+require(padr, lib.loc"~/www/Hockey/rpkg")
+require(Matrix, lib.loc"~/www/Hockey/rpkg")
+require(RcppRoll, lib.loc"~/www/Hockey/rpkg")
+require(RMySQL, lib.loc"~/www/Hockey/rpkg") # one of these SQL connections required
+require(xgboost, lib.loc"~/www/Hockey/rpkg") # definitely required
+require(zoo, lib.loc"~/www/Hockey/rpkg")
 
 
 ## load data
@@ -24,15 +24,23 @@ on.exit(dbDisconnect(mydb))
 selection_od = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
 df_od = data.frame(fetch(selection_od, n = -1)) #dataframe
 
-##Binary Stuff
+##Model must iterate over every player
+##Binary Variable Construction
+#tm_compare, gp_boom_compare, gp_bust_compare must be iterated over every pair of sequential years
 #Interseason Team Change
-m_team = df_od$tm[str_detect()]
+#need to compare prev year team (2021) to next year team; str_detect not necessary
+tm_1 = df_od$tm["how get year 1?"]
+tm_2 = df_od$tm["how get year 2?"]
+tm_compare
 
 #Games played increase excl. (boom)
-gp_boom = df_od$gp
-
+#need to compare prev year gp (2021) to next year gp
+gp_bb_1 = df_od$gp["how get year 1?"]
+gp_bb_2 = df_od$gp["how get year 1?"]
+gp_boom_compare
 #Games played decrease or equal (bust)
-gp_bust = df_od$gp
+gp_bust_compare
+
 # Optimal Age Checker
 opt_age = (df_od$age == 28)
 
@@ -67,13 +75,17 @@ model_bustod <- glm("target variable" ~., data = train_od, family = binomial)
 probs_bustod <- model_bustod %>% predict(test_od, type = "response")
 predictions_bustod <- ifelse(probs_bustod > 0.5, "bust", "no") #can change these to 1/0 later; flip order for bust?
 # Assess Model Accuracy
-mean(predictions_bustod == test_od$"target variable")
+accur = mean(predictions_bustod == test_od$"target variable")
 
 ## ORGANIZE RESULT AND/OR POST PROCESSING
 #this section will handle and output an od DF with predicted classification attributed
 
 ## LOGIC CONTROL AND SPECIAL CASE CHECKING FOR FINAL CLASSIFICATION
 #needs adjustment
+
+###END BUST
+
+##Push to DB and Disconnect
 e <- 1
 for(i in T_AVG){
   myRequest <- paste("UPDATE Skaters SET mid_pred_fantasy_scr=",i , "WHERE ", "rows=",e)
@@ -85,4 +97,3 @@ all_cons <- dbListConnections(MySQL())
 for (con in all_cons){
   dbDisconnect(con)
 }
-###END BUST
