@@ -40,25 +40,40 @@ df_od$blk <- as.numeric(df_od$blk)
 df_od$hit <- as.numeric(df_od$hit)
 statlist = c(8:20)
 max_year = max(df_od$year)
-#"g", "a", "pts", "pim", "ppg", "shg", "ppa", "sha", "sog", "blk", "hit", "ppp", "shp"
-myReq <- paste("SELECT * FROM Skaters WHERE Skaters.year=",max_year)
-myReq <- paste("SELECT * FROM Skaters S, (SELECT player_ids FROM Skaters S,(SELECT player_id, COUNT(year) AS Count FROM Skaters GROUP BY player_id) Y WHERE S.player_id=Y.player_id AND Y.count > 1) G WHERE S.player_id=G.player_id")
-myData = dbSendQuery(mydb,myReq)
-skater_ids = data.frame(fetch(myData, n = -1)) #dataframe
-#Skater_ids are Skaters who played in 2021 and multiple years
-skater_ids2 <- skater_ids[skater_ids$year == 2021, ]
-skater_ids[skater_ids$player_id==1397, ]
 
-which(skater_ids$year == 2008)
+#"g", "a", "pts", "pim", "ppg", "shg", "ppa", "sha", "sog", "blk", "hit", "ppp", "shp"
+#myReq <- paste("SELECT * FROM Skaters WHERE Skaters.year=",max_year)
+#myReq <- paste("SELECT * FROM Skaters S, (SELECT player_ids FROM Skaters S,(SELECT player_id, COUNT(year) AS Count FROM Skaters GROUP BY player_id) Y WHERE S.player_id=Y.player_id AND Y.count > 1) G WHERE S.player_id=G.player_id")
+#myRep <- paste("SELECT player_id FROM Skaters GROUP BY player_id HAVING COUNT(player_id) > 1")
+#Skaters.
+myRequest <- paste("SELECT S.* FROM Skaters S, (SELECT player_id, COUNT(player_id) AS count FROM Skaters GROUP BY player_id) G WHERE S.player_id=G.player_id AND G.count>1")
+myData = dbSendQuery(mydb,myRequest)
+skater_ids_df = data.frame(fetch(myData, n = -1)) #dataframe
+#playerData
+#playerData[playerData$player_id==2012, ]
+
+#myData = dbSendQuery(mydb,myReq)
+#skater_ids_df = data.frame(fetch(myData, n = -1)) #dataframe
+skater_ids = skater_ids_df$player_id
+#Skater_ids are Skaters who played in 2021 and multiple years
+
+skater_ids2 <- skater_ids_df[skater_ids_df$year == 2021, ]
+#skater_ids2_1 <- skater_ids_df[skater_ids_df$year == 2020, ]
+
+#skater_ids[skater_ids$player_id==1397, ]
+#skater_ids3 = skater_ids[skater_ids$player_id == skater_ids2$player_id]
+#which(skater_ids$year == 2008)
 df_final = c()
 df_total = c()
 
-for (ind in skater_ids$player_id){
-  myReq <- paste("SELECT * FROM Skaters HAVING (COUNT(Skaters.player_id) > 1) AND Skaters.player_id=",ind)
-  myReq <- paste("SELECT * FROM Skaters HAVING (COUNT(Skaters.player_id) > 1) AND Skaters.player_id=",ind)
+for (ind in skater_ids2$player_id){
+  #myReq <- paste("SELECT * FROM Skaters HAVING (COUNT(Skaters.player_id) > 1) AND Skaters.player_id=",ind)
+  #myReq <- paste("SELECT * FROM Skaters HAVING (COUNT(Skaters.player_id) > 1) AND Skaters.player_id=",ind)
+  #myData = dbSendQuery(mydb,myReq)
+  #skater_info = data.frame(fetch(myData, n = -1)) #dataframe
+  myReq <- paste("SELECT * FROM Skaters WHERE Skaters.player_id=",2497)
   myData = dbSendQuery(mydb,myReq)
   skater_info = data.frame(fetch(myData, n = -1)) #dataframe
-  
   for (indx in statlist){
     ## This section must iterate the target variable over all o/d player statistics to report forecasts of each, for each player
     ## partition dataset
