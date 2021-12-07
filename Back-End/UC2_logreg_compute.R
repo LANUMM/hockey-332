@@ -1,19 +1,30 @@
 ##Boom/Bust OD Classifier
 ## load packages; all may not be required
 #install.packages(c("caret", "dplyr", "ggplot2", "RMySQL", "xgboost"))
-require(caret, lib.loc"~/www/Hockey/rpkg") # definitely required
-require(data.table, lib.loc"~/www/Hockey/rpkg")
-require(dplyr, lib.loc"~/www/Hockey/rpkg") # definitely required
-require(ggplot2, lib.loc"~/www/Hockey/rpkg")
-require(lattice, lib.loc"~/www/Hockey/rpkg")
-require(magrittr, lib.loc"~/www/Hockey/rpkg")
-require(padr, lib.loc"~/www/Hockey/rpkg")
-require(Matrix, lib.loc"~/www/Hockey/rpkg")
-require(RcppRoll, lib.loc"~/www/Hockey/rpkg")
-require(RMySQL, lib.loc"~/www/Hockey/rpkg") # one of these SQL connections required
-require(xgboost, lib.loc"~/www/Hockey/rpkg") # definitely required
-require(zoo, lib.loc"~/www/Hockey/rpkg")
-
+#require(caret, lib.loc"~/www/Hockey/rpkg") # definitely required
+#require(data.table, lib.loc"~/www/Hockey/rpkg")
+#require(dplyr, lib.loc"~/www/Hockey/rpkg") # definitely required
+#require(ggplot2, lib.loc"~/www/Hockey/rpkg")
+#require(lattice, lib.loc"~/www/Hockey/rpkg")
+#require(magrittr, lib.loc"~/www/Hockey/rpkg")
+#require(padr, lib.loc"~/www/Hockey/rpkg")
+#require(Matrix, lib.loc"~/www/Hockey/rpkg")
+#require(RcppRoll, lib.loc"~/www/Hockey/rpkg")
+#require(RMySQL, lib.loc"~/www/Hockey/rpkg") # one of these SQL connections required
+#require(xgboost, lib.loc"~/www/Hockey/rpkg") # definitely required
+#require(zoo, lib.loc"~/www/Hockey/rpkg")
+require(caret) # definitely required
+require(data.table)
+require(dplyr) # definitely required
+require(ggplot2)
+require(lattice)
+require(magrittr)
+require(padr)
+require(Matrix)
+require(RcppRoll)
+require(RMySQL) # one of these SQL connections required
+require(xgboost) # definitely required
+require(zoo)
 
 ## load data
 # we must connect to the SQL database and pull the table containing all player stats
@@ -23,6 +34,7 @@ mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = '
 on.exit(dbDisconnect(mydb))
 selection_od = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
 df_od = data.frame(fetch(selection_od, n = -1)) #dataframe
+sktr_id = df_od$player_id
 
 ##Model must iterate over every player
 ##Binary Variable Construction
@@ -53,14 +65,15 @@ train_od = data.frame(df_od[trainindex_od,])
 test_od = data.frame(df_od[-trainindex_od,])
 
 ###BEGIN BOOM CLASSIFIER
+for (i in sktr_id){
 ## BOOM LOGISTIC REGRESSION TRAINING
 model_boomod <- glm("target variable" ~., data = train_od, family = binomial)
 ## BOOM LOGISTIC REGRESSION IMPLEMENT
 probs_boomod <- model_boomod %>% predict(test_od, type = "response")
 predictions_boomod <- ifelse(probs_boomod > 0.5, "boom", "no") #can change these to 1/0 later
 # Assess Model Accuracy
-mean(predictions_boomod == test_od$"target variable")
-
+accur = mean(predictions_boomod == test_od$"target variable")
+}
 ## ORGANIZE RESULT AND/OR POST PROCESSING
 #this section will handle and output an od DF with predicted classification attributed
 
@@ -69,6 +82,7 @@ mean(predictions_boomod == test_od$"target variable")
 ###END BOOM
 
 ###BEGIN BUST CLASSIFIER
+for (i in sktr_id){
 ## BUST LOGISTIC REGRESSION TRAINING
 model_bustod <- glm("target variable" ~., data = train_od, family = binomial)
 ## BUST LOGISTIC REGRESSION IMPLEMENT
@@ -76,7 +90,7 @@ probs_bustod <- model_bustod %>% predict(test_od, type = "response")
 predictions_bustod <- ifelse(probs_bustod > 0.5, "bust", "no") #can change these to 1/0 later; flip order for bust?
 # Assess Model Accuracy
 accur = mean(predictions_bustod == test_od$"target variable")
-
+}
 ## ORGANIZE RESULT AND/OR POST PROCESSING
 #this section will handle and output an od DF with predicted classification attributed
 
