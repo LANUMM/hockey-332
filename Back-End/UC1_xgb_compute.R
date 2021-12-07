@@ -64,7 +64,7 @@ xgb_trcontrol <- caret::trainControl(
   allowParallel = TRUE,
   verboseIter = FALSE,
   returnData = FALSE
-  )
+)
 
 xgb_grid <- base::expand.grid(
   list(
@@ -76,7 +76,7 @@ xgb_grid <- base::expand.grid(
     subsample = c(0.5, 0.75, 1),
     min_child_weight = c(1, 2, 3), 
     colsample_bytree = 1
-    ))
+  ))
 
 xgb_model <- train(
   od_trainer,
@@ -110,9 +110,9 @@ forecast_list  <- list(
 
 class(forecast_list) <- "forecast"
 forecast::autoplot(forecast_list)
-
+#use df_final as final loop database
 #see goalie comment here for info
-df_od_pred_pts <- 6*df_od$g + 4*df_od$a + 2*df_od$ppp + (.9)*df_od$sog + 1*df_od$blk
+df_od_pred_pts <- 6*df_final$g + 4*df_final$a + 2*df_final$ppp + (.9)*df_final$sog + 1*df_final$blk
 print(df_od_pred_pts)
 od_pred2 <- df_od_pred_pts
 od_pred3 <- od_pred2
@@ -128,13 +128,40 @@ ZSkate <- ((od_pred2 - meanSkate) / (sdSkate))
 rank_result_od <- rank(ZSkate, na.last = TRUE, ties.method = "first")
 
 #error <- mean(as.numeric(pred > 0.5) != test$"target variable")
-chisq_test <- chisq.test(df_od$sv, od_pred3)
-print(chisq_test)
+#chisq_test <- chisq.test(df_od$sv, od_pred3)
+#print(chisq_test)
 
+e <- 1
+for(i in df_od_pred_pts){
+  myRequest <- paste("UPDATE Skaters SET pred_fantasy_score=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
+
+e <- 1
+for(i in rank_result_od){
+  myRequest <- paste("UPDATE Skaters SET pre_rank=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
+
+e <- 1
+for(i in ZSkate){
+  myRequest <- paste("UPDATE Skaters SET Zscore=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
+
+#must be inside loop
+e <- 1
+for(i in df_final$index){
+  myRequest <- paste("UPDATE Skaters SET index*=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
 ##Push to DB and Disconnect
 all_cons <- dbListConnections(MySQL())
 for (con in all_cons){
   dbDisconnect(con)
 }
-#calc fantasy points and yreturn year as 2022
 

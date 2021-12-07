@@ -105,11 +105,10 @@ forecast_list  <- list(
 class(forecast_list) <- "forecast"
 forecast::autoplot(forecast_list)
 
-g_pred_p = 5*df_g$so + .6*df_g$sv + 5*df_g$w
+g_pred_p = 5*df_final$so + .6*df_final$sv + 5*df_final$w
 g_pred2 <- g_pred_p
 g_pred3 <- g_pred2
 g_pred2[g_pred2==0] <- NA
-#g_pred2 <- g_pred2[-c(is.na(g_pred2))]
 g_pred2 <- as.numeric(na.omit(g_pred2))
 
 meanGoal <- mean(g_pred2)
@@ -122,19 +121,44 @@ rank_result_g <- rank(ZGoal, na.last = TRUE, ties.method = "first")
 #print(error)
 
 #score testing set
-tv_test_pred = predict(xgb_model, data.matrix(test_g[,-1]))
-print(tv_tes_pred)
+#tv_test_pred = predict(xgb_model, data.matrix(test_g[,-1]))
+#print(tv_tes_pred)
 
 
-chisq_test <- chisq.test(df_g$sv, g_pred3)
-print(chisq_test)
+#chisq_test <- chisq.test(df_g$sv, g_pred3)
+#print(chisq_test)
+
+e <- 1
+for(i in g_pred_p){
+  myRequest <- paste("UPDATE Goalies SET pred_fantasy_score=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
+
+e <- 1
+for(i in rank_result_g){
+  myRequest <- paste("UPDATE Goalies SET pre_rank=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
+
+e <- 1
+for(i in ZGoal){
+  myRequest <- paste("UPDATE Goalies SET Zscore=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
+
+#must be inside loop
+e <- 1
+for(i in df_final$index){
+  myRequest <- paste("UPDATE Goalies SET index*=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
 
 ##Push to DB and Disconnect
 all_cons <- dbListConnections(MySQL())
 for (con in all_cons){
   dbDisconnect(con)
 }
-
-
-## End section
-
