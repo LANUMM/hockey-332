@@ -41,11 +41,8 @@ df_g = data.frame(fetch(selection_g, n = -1)) #dataframe
 ## This section must iterate the target variable over all goalie statistics to report forecasts of each, for each goalie
 ## partition dataset
 # currently set to 75/25 train/test
-<<<<<<< HEAD
 trainindex_g = data.frame(createDataPartition(df_g$a, p = 0.75, list = F, times = 1))$Resample1 # should train/test selection be random or linear with time?
-=======
 trainindex_g = data.frame(createDataPartition(df_g$sv, p = 0.75, list = F, times = 1))$Resample1 # should train/test selection be random or linear with time?
->>>>>>> f2d4b95b9f16d35d18e18b928b1c0e63a1bdc888
 train_g = data.frame(df_g[ ,c(7:11)][trainindex_g,])
 test_g = data.frame(df_g[ ,c(7:11)][-trainindex_g,])
 
@@ -84,6 +81,8 @@ xgb_model <- train(
   scale_pos_weight = 0.32
 )
 
+xgb_pred <- xgb_model %>% stats::predict(g_pred)
+
 fitted <- xgb_model %>%
   stats::predict(g_trainer) %>%
   stats::ts(start=2008, end = 2021, frequency = 13) #84, 87, 89 confirm
@@ -106,18 +105,24 @@ forecast_list  <- list(
 class(forecast_list) <- "forecast"
 forecast::autoplot(forecast_list)
 
-g_pred_p = 5*df_stats_g$so + .6*df_stats_g$sv + 5*df_stats_g$w
+g_pred_p = 5*df_g$so + .6*df_g$sv + 5*df_g$w
 g_pred2 <- g_pred_p
+g_pred3 <- g_pred2
 g_pred2[g_pred2==0] <- NA
-g_pred2 <- g_pred2[-c(is.na(g_pred2))]
+#g_pred2 <- g_pred2[-c(is.na(g_pred2))]
+g_pred2 <- as.numeric(na.omit(g_pred2))
 
 meanGoal <- mean(g_pred2)
 sdGoal <- sd(g_pred2)
 ZGoal <- ((g_pred2 - meanGoal) / (sdGoal))
 
-rank_result_g <- rank(Zgoal, na.last = TRUE, ties.method = "first")
+rank_result_g <- rank(ZGoal, na.last = TRUE, ties.method = "first")
 
-error <- mean(as.numeric(pred > 0.5) != test$"target variable")
+#error <- mean(as.numeric(g_pred3 > 0.5) != df_g$sv)
+#print(error)
+
+test <- chisq.test(df_g$sv, g_pred3)
+print(test)
 
 ##Push to DB and Disconnect
 all_cons <- dbListConnections(MySQL())
@@ -125,8 +130,6 @@ for (con in all_cons){
   dbDisconnect(con)
 }
 
-#test <- chisq.test(train$Age, output_vector)
-#print(test)
 
 ## End section
 
