@@ -32,8 +32,13 @@ require(zoo)
 # we must connect to the SQL database and pull the table containing all player stats
 mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = 'g1117489', host = 'mydb.ics.purdue.edu')
 on.exit(dbDisconnect(mydb))
-selection_od = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
+myReq <- paste("SELECT * FROM Skaters")
+selection_od = dbSendQuery(mydb, myReq) # remove ""? # select TAVG
 df_od = data.frame(fetch(selection_od, n = -1)) #dataframe
+
+df_od$sog <- as.numeric(df_od$sog)
+df_od$blk <- as.numeric(df_od$blk)
+df_od$hit <- as.numeric(df_od$hit)
 
 ## This section must iterate the target variable over all o/d player statistics to report forecasts of each, for each player
 ## partition dataset
@@ -41,7 +46,7 @@ df_od = data.frame(fetch(selection_od, n = -1)) #dataframe
 trainindex_od = data.frame(createDataPartition(df_od$a, p = 0.75, list = F, times = 1))$Resample1 # should train/test selection be random or linear with time?
 train_od = data.frame(df_od[ ,c(8:20)][trainindex_od, ])
 test_od = data.frame(df_od[ ,c(8:20)][-trainindex_od,])
-
+head(train_od)
 ## XGBoost training
 od_trainer = as.matrix(train_od)
 head(od_trainer)
@@ -78,9 +83,11 @@ xgb_model <- train(
   tv_train_od,
   method = "xgbTree",
   trControl = xgb_trcontrol,
-  tuneGrid = xgb_grid,
+  tuneGrid = xgb_grid[1:7, ],
   scale_pos_weight = 0.32
-  )
+)
+
+xgb_pred <- xgb_model %>% stats::predict(od_pred)
 
 fitted <- xgb_model %>%
   stats::predict(od_trainer) %>%
@@ -105,21 +112,24 @@ class(forecast_list) <- "forecast"
 forecast::autoplot(forecast_list)
 
 #see goalie comment here for info
-df_od_pred_pts <- 6*df_od_pred$goals + 4*df_od_pred$assists + 2*df_od_pred$ppp + .9*df_od_pred$sog + 1*df_od_pred$blocks
+df_od_pred_pts <- 6*df_od$g + 4*df_od$a + 2*df_od$ppp + (.9)*df_od$sog + 1*df_od$blk
 print(df_od_pred_pts)
 od_pred2 <- df_od_pred_pts
+od_pred3 <- od_pred2
 od_pred2[od_pred2==0] <- NA
-od_pred2 <- od_pred2[-c(is.na(od_pred2))]
-head(og_pred2)
+od_pred2 <- as.numeric(na.omit(od_pred2))
+head(od_pred2)
 
 meanSkate <- mean(od_pred2)
 print(meanSkate)
 sdSkate <- sd(od_pred2)
 ZSkate <- ((od_pred2 - meanSkate) / (sdSkate))
 
-rank_result_od <- rank(ZSkate, na.last = TRUE, ties.method = "First")
+rank_result_od <- rank(ZSkate, na.last = TRUE, ties.method = "first")
 
-error <- mean(as.numeric(pred > 0.5) != test$"target variable")
+#error <- mean(as.numeric(pred > 0.5) != test$"target variable")
+chisq_test <- chisq.test(df_od$sv, od_pred3)
+print(chisq_test)
 
 ##Push to DB and Disconnect
 all_cons <- dbListConnections(MySQL())

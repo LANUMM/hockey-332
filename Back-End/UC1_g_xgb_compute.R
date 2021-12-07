@@ -41,7 +41,7 @@ df_g = data.frame(fetch(selection_g, n = -1)) #dataframe
 ## This section must iterate the target variable over all goalie statistics to report forecasts of each, for each goalie
 ## partition dataset
 # currently set to 75/25 train/test
-trainindex_g = data.frame(createDataPartition(df_g$a, p = 0.75, list = F, times = 1))$Resample1 # should train/test selection be random or linear with time?
+
 trainindex_g = data.frame(createDataPartition(df_g$sv, p = 0.75, list = F, times = 1))$Resample1 # should train/test selection be random or linear with time?
 train_g = data.frame(df_g[ ,c(7:11)][trainindex_g,])
 test_g = data.frame(df_g[ ,c(7:11)][-trainindex_g,])
@@ -121,8 +121,13 @@ rank_result_g <- rank(ZGoal, na.last = TRUE, ties.method = "first")
 #error <- mean(as.numeric(g_pred3 > 0.5) != df_g$sv)
 #print(error)
 
-test <- chisq.test(df_g$sv, g_pred3)
-print(test)
+#score testing set
+tv_test_pred = predict(xgb_model, data.matrix(test_g[,-1]))
+print(tv_tes_pred)
+
+
+chisq_test <- chisq.test(df_g$sv, g_pred3)
+print(chisq_test)
 
 ##Push to DB and Disconnect
 all_cons <- dbListConnections(MySQL())
