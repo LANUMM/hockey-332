@@ -38,10 +38,10 @@ df_od = data.frame(fetch(selection_od, n = -1)) #dataframe
 df_od$sog <- as.numeric(df_od$sog)
 df_od$blk <- as.numeric(df_od$blk)
 df_od$hit <- as.numeric(df_od$hit)
-#statlist = c(8:20)
+statlist = c(8:20)
 max_year = max(df_od$year)
 
-statlist = c("g", "a", "pts", "pim", "ppg", "shg", "ppa", "sha", "sog", "blk", "hit", "ppp", "shp")
+#statlist = c("g", "a", "pts", "pim", "ppg", "shg", "ppa", "sha", "sog", "blk", "hit", "ppp", "shp")
 #myReq <- paste("SELECT * FROM Skaters WHERE Skaters.year=",max_year)
 #myReq <- paste("SELECT * FROM Skaters S, (SELECT player_ids FROM Skaters S,(SELECT player_id, COUNT(year) AS Count FROM Skaters GROUP BY player_id) Y WHERE S.player_id=Y.player_id AND Y.count > 1) G WHERE S.player_id=G.player_id")
 #myRep <- paste("SELECT player_id FROM Skaters GROUP BY player_id HAVING COUNT(player_id) > 1")
@@ -82,19 +82,19 @@ for (ind in skater_ids2$player_id) {
       ## This section must iterate the target variable over all o/d player statistics to report forecasts of each, for each player
       ## partition dataset
       # currently set to 75/25 train/test
-      skater_info2 = skater_info[rep(seq_len(nrow(skater_info)), each = 20), ]
-      trainindex_od = data.frame(createDataPartition(skater_info2$indx, p = 0.75, list = F, times = 1))$Resample1 # should train/test selection be random or linear with time?
-      train_od = data.frame(skater_info2$indx[trainindex_od, ])
-      test_od = data.frame(skater_info2$indx[-trainindex_od,])
+      skater_info2 = skater_info[rep(seq_len(nrow(skater_info)), each = 5), ]
+      #trainindex_od = data.frame(createDataPartition(skater_info2[indx][[1]], p = 0.75, list = F, times = 1))$Resample1 # should train/test selection be random or linear with time?
+      #trainindex_od = data.frame((skater_info2,floor(length(skater_info2)*.75)))
+      trainindex_od = sample(1:length(skater_info2[indx][[1]]),floor(length(skater_info2[indx][[1]])*.75))
+      trainindex_od <- data.frame(skater_info2[sort(trainindex_od), ])
+      train_od = data.frame(skater_info2[ ,c(8:20)][trainindex_od, ])
+      test_od = data.frame(skater_info2[ ,c(8:20)][-trainindex_od,])
       #[ ,c(8:20)]
       
-      if (ind == 2497){
-        print('Dumbass')
-      }
       ## XGBoost training
-      od_trainer = as.matrix(train_od)
+      od_trainer = as.matrix(as.numeric(train_od))
       od_pred = as.matrix(test_od)
-      tv_train_od = train_od[indx]
+      tv_train_od = as.matrix(train_od[indx-7][[1]])
       
       xgb_trcontrol <- caret::trainControl(
         method = "cv",
@@ -148,12 +148,13 @@ for (ind in skater_ids2$player_id) {
       forecast::autoplot(forecast_list)
       
       df_final = append(df_final, xgb_pred)
+      print(paste("end of first loop:",df_final))
     }
   }
   df_final = as.matrix(df_final)
   df_final = t(df_final)
   future_vals = c(ind, df_final)
-  df_total = data.frame(append(df_total, future_vals))
+  df_total = append(df_total, future_vals)
 }
 
 #use df_final as final loop database
@@ -188,12 +189,12 @@ for(i in rank_result_od){
   e <- e+1
 }
 
-e <- 1
-for(i in ZSkate){
-  myRequest <- paste("UPDATE Skaters SET Zscore=",i , "WHERE ", "rows=",e)
-  dbSendQuery(mydb,myRequest)
-  e <- e+1
-}
+#e <- 1
+#for(i in ZSkate){
+#  myRequest <- paste("UPDATE Skaters SET Zscore=",i , "WHERE ", "rows=",e)
+#  dbSendQuery(mydb,myRequest)
+#  e <- e+1
+#}
 
 #must be inside loop
 for (indx in statlist){

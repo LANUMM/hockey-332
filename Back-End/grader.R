@@ -53,7 +53,10 @@ teamSumScore <- function(myLeague_id){
     myData = dbSendQuery(mydb,myRequest)
     teamScore = data.frame(fetch(myData, n = -1)) #dataframe
     teamScore <- teamScore$SUM.Y.fantasy_score.
-    scoreDF <- rbind(scoreDF, c(i,teamScore))
+    print(teamScore)
+    scoreDF$team <- c(scoreDF$team, i)
+    scoreDF$score <- c(scoreDF$score, teamScore)
+      rbind(scoreDF, c(i,teamScore))
   }
   return(scoreDF)
 }
@@ -66,12 +69,7 @@ on.exit(dbDisconnect(mydb))
 myData = dbSendQuery(mydb, "SELECT league_id FROM League")
 leagueIDs = data.frame(fetch(myData, n = -1)) #dataframe
 
-for(i in league_id){
-  scoreDF <- teamSumScore(i)
   
-  
-  
-}
 # ABOVE MUST BE ITERATED OVER A LEAGUE
 df_TAVG = c(10,11,12,10,9,12,15,14)
 num_teams <- length(df_TAVG)
@@ -103,30 +101,3 @@ for (con in all_cons){
 #check 
 
 
-#pred_fantasy_score
-teamSumScore <- function(myLeague_id){
-  scoreDF <- data.frame()
-  #Get team_ids for that league
-  myRequest <- paste("select team_id from Team where Team.league_id=", myLeague_id)
-  myData = dbSendQuery(mydb,myRequest)
-  teamIDs = data.frame(fetch(myData, n = -1)) #dataframe
-  
-  #for every team in the league, find all the players and sum the stat in question 
-  for(i in teamIDs){
-    myRequest <- paste("SELECT player_id FROM Roster WHERE team_id=", i)
-    myData = dbSendQuery(mydb,myRequest)
-    playerIDs = data.frame(fetch(myData, n = -1)) #dataframe
-    #Return the sum of the fantasy_score for all of the players on the given roster
-    idReq<- paste(playerIDs$player_id, collapse=" OR player_id=")
-    myRequest <- paste("SELECT SUM(Y.fantasy_score) ",
-          "FROM (SELECT fantasy_score FROM Skaters WHERE player_id=", idReq,
-          " UNION ",
-          "SELECT fantasy_score FROM Goalies WHERE player_id=", idReq, ") Y", sep="")
-        
-    myData = dbSendQuery(mydb,myRequest)
-    teamScore = data.frame(fetch(myData, n = -1)) #dataframe
-    teamScore <- teamScore$SUM.Y.fantasy_score.
-    scoreDF <- rbind(scoreDF, c(i,teamScore))
-  }
-  return(scoreDF)
-}

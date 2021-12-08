@@ -30,6 +30,7 @@ rank_result <- rank(ZAll, na.last = TRUE, ties.method = "first")
 #return rank result midseason
 #line 21 error for no reason
 
+
 All_pred2_g <- df_TAVG_g$mid_pred_fantasy_scr
 All_pred2_g[which(is.na(All_pred2_g))] <- 0
 All_pred2_g <- na.omit(All_pred2_g)
@@ -38,6 +39,45 @@ meanAll_g <- mean(All_pred2_g)
 sdAll_g <- sd(All_pred2_g)
 ZAll_g <- ((All_pred2_g - meanAll_g) / (sdAll_g))
 rank_result_g <- rank(ZAll_g, na.last = TRUE, ties.method = "first")
+
+df_Z <- append(ZAll,ZAll_g)
+rank_result2 <- rank(df_Z, na.last = TRUE, ties.method = "first")
+df_Zod_split <- rank_result2[1:length(ZAll)]
+df_Zg_split <- rank_result2[-(1:length(ZAll))]
+#
+e <- 1
+for(i in df_Zod_split){
+  myRequest <- paste("UPDATE Skaters SET mid_rank=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
+e <- 1
+for(i in df_Zg_split){
+  myRequest <- paste("UPDATE Goalies SET mid_rank=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
+
+all_cons <- dbListConnections(MySQL())
+for (con in all_cons){
+  dbDisconnect(con)
+}
+
+e <- 1
+for(i in rank_result){
+  myRequest <- paste("UPDATE Skaters SET sk_rank=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
+
+e <- 1
+for(i in rank_result_g){
+  myRequest <- paste("UPDATE Goalies SET G_rank=",i , "WHERE ", "rows=",e)
+  dbSendQuery(mydb,myRequest)
+  e<- e+1
+}
+
+
 
 e <- 1
 for(i in ZAll){
@@ -53,24 +93,6 @@ for(i in ZAll_g){
   e<- e+1
 }
 
-all_cons <- dbListConnections(MySQL())
-for (con in all_cons){
-  dbDisconnect(con)
-}
-
-e <- 1
-for(i in rank_result){
-  myRequest <- paste("UPDATE Skaters SET mid_rank=",i , "WHERE ", "rows=",e)
-  dbSendQuery(mydb,myRequest)
-  e<- e+1
-}
-
-e <- 1
-for(i in rank_result_g){
-  myRequest <- paste("UPDATE Goalies SET mid_rank=",i , "WHERE ", "rows=",e)
-  dbSendQuery(mydb,myRequest)
-  e<- e+1
-}
 #idReq<- paste(playerIDs$player_id, collapse=" OR player_id=")
 #myRequest <- paste("UPDATE Goalies SET mid_rank=  ",
 #                   "FROM (SELECT fantasy_score FROM Skaters WHERE player_id=", idReq,

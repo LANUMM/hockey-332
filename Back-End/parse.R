@@ -2,44 +2,21 @@
 #TODO: Input year of draft as user input and consider in error check ^ 
 #TODO: Clean back up so it runs on the Server
 
+library(stringi)#, lib.loc="~/www/Hockey/rpkg")
+library(stringr)#, lib.loc="~/www/Hockey/rpkg")
+library(gridExtra)#, lib.loc="~/www/Hockey/rpkg")
+library(stringi)#, lib.loc="~/www/Hockey/rpkg")
+library(stringr)#, lib.loc="~/www/Hockey/rpkg")
+library(gridExtra)#, lib.loc="~/www/Hockey/rpkg")
+library(RMySQL)#, lib.loc"~/www/Hockey/rpkg")
 
-
-library(stringi, lib.loc="~/www/Hockey/rpkg")
-library(stringr, lib.loc="~/www/Hockey/rpkg")
-library(gridExtra, lib.loc="~/www/Hockey/rpkg")
-library(stringi, lib.loc="~/www/Hockey/rpkg")
-library(stringr, lib.loc="~/www/Hockey/rpkg")
-library(gridExtra, lib.loc="~/www/Hockey/rpkg")
-library(RMySQL, lib.loc"~/www/Hockey/rpkg")
-
-setwd("~/www/Hockey/files")
-data=readLines('myfile')
-capture<-str_match_all(data,"\\u0029\\s(.+)\\s\\u002D\\s(.+)\\s(.+)\\s\\u0028([A-Za-z]+)\\s\\u002D\\s([A-Za-z]+)")
-names<-c("DraftTeam","FirstName","LastName","Team","Posistion")
-temp<-do.call(rbind,capture)
-df<-data.frame(DraftTeam=temp[,2],FirstName=temp[,3],LastName=temp[,4],Team=temp[,5],Position=temp[,6])
-#remove '
-df$FirstName <- lapply(df$FirstName,str_remove_all,pattern="'")
-df$LastName <- lapply(df$LastName,str_remove_all,pattern="'")
-
-mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = 'g1117489', host = 'mydb.ics.purdue.edu')
-on.exit(dbDisconnect(mydb))
-
-#Insert parsed data into DB
-draftToDB(df)
-
-#Close connections
-all_cons <- dbListConnections(MySQL())
-for (con in all_cons){
-  dbDisconnect(con)
-}
 #######################################################################################
 # Function to insert the uploaded leauge into the DB
 # Input: data frame of leauge info
 # Output: N/A
 #######################################################################################
 draftToDB <- function(myDF){
-
+  
   #This season
   thisYear <- 2021
   
@@ -67,11 +44,11 @@ draftToDB <- function(myDF){
     #Update Team table
     myReq <- paste("INSERT INTO Team(league_id, team_name) VALUES(",latestLeagueID, ",'",teamData$DraftTeam[1],"')", sep="")
     print(paste("Team table statements:", myReq))
-     dbSendQuery(mydb,myReq)
+    dbSendQuery(mydb,myReq)
     
     #Update Roster
     
-      #Get latest teamID 
+    #Get latest teamID 
     myReq <- paste("SELECT MAX(team_id) FROM Team")
     requestData = dbSendQuery(mydb,myReq)
     latestTeamID = data.frame(fetch(requestData, n = -1))[[1]] 
@@ -153,4 +130,34 @@ findPlayerID <- function(fName, lName, pos, year){
   }else{
     return(0)
   }
+}
+
+#setwd("~/www/Hockey/files")
+#data=readLines('myfile')
+data=readLines('C:\\Users\\matth\\Downloads\\mock2.txt')
+capture<-str_match_all(data,"\\u0029\\s(.+)\\s\\u002D\\s(.+)\\s(.+)\\s\\u0028([A-Za-z]+)\\s\\u002D\\s([A-Za-z]+)")
+names<-c("DraftTeam","FirstName","LastName","Team","Posistion")
+temp<-do.call(rbind,capture)
+df<-data.frame(DraftTeam=temp[,2],FirstName=temp[,3],LastName=temp[,4],Team=temp[,5],Position=temp[,6])
+#remove '
+df$FirstName <- lapply(df$FirstName,str_remove_all,pattern="'")
+df$LastName <- lapply(df$LastName,str_remove_all,pattern="'")
+
+mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = 'g1117489', host = 'mydb.ics.purdue.edu')
+on.exit(dbDisconnect(mydb))
+
+#Insert parsed data into DB
+draftToDB(df)
+
+#Close connections
+
+all_cons <- dbListConnections(MySQL())
+for (con in all_cons){
+  dbDisconnect(con)
+}
+
+#Run again for saftey
+all_cons <- dbListConnections(MySQL())
+for (con in all_cons){
+  dbDisconnect(con)
 }
