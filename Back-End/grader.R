@@ -24,16 +24,54 @@ require(RMySQL) # one of these SQL connections required
 require(xgboost) # definitely required
 require(zoo)
 
+
+#######################################################################################
+# Function to generate the sum of pred_fantasy_score for all teams in a league
+# Input: myLeague_id the league_id of the league you want the teams data for
+# Output: scoreDF a DF of team IDs in the given league and the sum of the pred_fantasy_score for the players on that team
+#######################################################################################
+#pred_fantasy_score
+teamSumScore <- function(myLeague_id){
+  scoreDF <- data.frame()
+  #Get team_ids for that league
+  myRequest <- paste("select team_id from Team where Team.league_id=", myLeague_id)
+  myData = dbSendQuery(mydb,myRequest)
+  teamIDs = data.frame(fetch(myData, n = -1)) #dataframe
+  
+  #for every team in the league, find all the players and sum the stat in question 
+  for(i in teamIDs){
+    myRequest <- paste("SELECT player_id FROM Roster WHERE team_id=", i)
+    myData = dbSendQuery(mydb,myRequest)
+    playerIDs = data.frame(fetch(myData, n = -1)) #dataframe
+    #Return the sum of the fantasy_score for all of the players on the given roster
+    idReq<- paste(playerIDs$player_id, collapse=" OR player_id=")
+    myRequest <- paste("SELECT SUM(Y.fantasy_score) ",
+                       "FROM (SELECT fantasy_score FROM Skaters WHERE player_id=", idReq,
+                       " UNION ",
+                       "SELECT fantasy_score FROM Goalies WHERE player_id=", idReq, ") Y", sep="")
+    
+    myData = dbSendQuery(mydb,myRequest)
+    teamScore = data.frame(fetch(myData, n = -1)) #dataframe
+    teamScore <- teamScore$SUM.Y.fantasy_score.
+    scoreDF <- rbind(scoreDF, c(i,teamScore))
+  }
+  return(scoreDF)
+}
+
 # PULL FROM A FANTASY TEAM, NOT PLAYER ID
 mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = 'g1117489', host = 'mydb.ics.purdue.edu')
 on.exit(dbDisconnect(mydb))
 
-#selection_leagueId = dbSendQuery(mydb, "select * from League") # remove ""? # select TAVG
-#df_leagueId = data.frame(fetch(selection_leagueId, n = -1)) #dataframe
-selection_TAVG = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG
-df_TAVG = data.frame(fetch(selection_TAVG, n = -1)) #dataframe
+#All league data
+myData = dbSendQuery(mydb, "SELECT league_id FROM League")
+leagueIDs = data.frame(fetch(myData, n = -1)) #dataframe
 
-
+for(i in league_id){
+  scoreDF <- teamSumScore(i)
+  
+  
+  
+}
 # ABOVE MUST BE ITERATED OVER A LEAGUE
 df_TAVG = c(10,11,12,10,9,12,15,14)
 num_teams <- length(df_TAVG)
@@ -65,39 +103,30 @@ for (con in all_cons){
 #check 
 
 
-
-myTeamScore <- data.frame()
-for (i in df_league$league_id) {
-  myRequest <- paste("SELECT * from Team WHERE league_id=",i)
-  selection_TeamId = dbSendQuery(mydb, myRequest) # remove ""? # select TAVG
-  df_Team = data.frame(fetch(selection_TeamId, n = -1)) #dataframe
-  df_TeamId <- df_Team$team_id
-  for(z in df_TeamId){
-    
+#pred_fantasy_score
+teamSumScore <- function(myLeague_id){
+  scoreDF <- data.frame()
+  #Get team_ids for that league
+  myRequest <- paste("select team_id from Team where Team.league_id=", myLeague_id)
+  myData = dbSendQuery(mydb,myRequest)
+  teamIDs = data.frame(fetch(myData, n = -1)) #dataframe
+  
+  #for every team in the league, find all the players and sum the stat in question 
+  for(i in teamIDs){
+    myRequest <- paste("SELECT player_id FROM Roster WHERE team_id=", i)
+    myData = dbSendQuery(mydb,myRequest)
+    playerIDs = data.frame(fetch(myData, n = -1)) #dataframe
+    #Return the sum of the fantasy_score for all of the players on the given roster
+    idReq<- paste(playerIDs$player_id, collapse=" OR player_id=")
+    myRequest <- paste("SELECT SUM(Y.fantasy_score) ",
+          "FROM (SELECT fantasy_score FROM Skaters WHERE player_id=", idReq,
+          " UNION ",
+          "SELECT fantasy_score FROM Goalies WHERE player_id=", idReq, ") Y", sep="")
+        
+    myData = dbSendQuery(mydb,myRequest)
+    teamScore = data.frame(fetch(myData, n = -1)) #dataframe
+    teamScore <- teamScore$SUM.Y.fantasy_score.
+    scoreDF <- rbind(scoreDF, c(i,teamScore))
   }
+  return(scoreDF)
 }
-
-teamSumScore <- function(league_id, statCol){
-  scoreDF <- data.frame(team_id=c(),score=c())
-  
-  myRequest <- paste("SELECT team_id from Team WHERE league_id=(1,3,4)")
-  selection_TeamId = dbSendQuery(mydb, myRequest) # remove ""? # select TAVG
-  
-}
-
-df_rand<- c(2:20)
-
-for(i in df_rand){
-  myRequest <- paste("INSERT INTO Team(team_id, leauge_id) values (", i, ")")
-  dbSendQuery(mydb,myRequest)
-}
-
-#myRequest <- paste("INSERT INTO Team(team_id, league_id) values (8,2)")
-#dbSendQuery(mydb,myRequest)
-
-myRequest <- paste("SELECT <<Roster>>",
-                    "FROM Team, <<Roster>>",
-                    "WHERE Team.league_id=1 AND <<Roster>>.team_id=Team.team_id")
-myData = dbSendQuery(mydb,myRequest)
-myData = data.frame(fetch(myData, n = -1)) #dataframe
-myData

@@ -1,5 +1,4 @@
 require("RMySQL")
-library(RMySQL)
 library(caret, lib.loc"~/www/Hockey/rpkg") # definitely required
 library(data.table, lib.loc"~/www/Hockey/rpkg")
 library(dplyr, lib.loc"~/www/Hockey/rpkg") # definitely required
@@ -18,10 +17,7 @@ mydb <- dbConnect(MySQL(), user = 'g1117489', password = 'HOCKEY332', dbname = '
 on.exit(dbDisconnect(mydb))
 
 #get input DF from parsed function 
-parsedDF <- read.csv("~/www/Hockey/files/parseDF")
-#assign id to players 
-parsedDF$id <- 
-dummyRank <- parseDF$
+
 
 #get midseasonRankings from DB 
 selection_MidRank_od = dbSendQuery(mydb, "select * from Skaters") # remove ""? # select TAVG

@@ -27,25 +27,23 @@ g_pred_p = 5*df_stats_g$so + .6*df_stats_g$sv + 5*df_stats_g$w
 df_od_pred_pts[which(is.na(df_od_pred_pts))] <- 0
 
 # Replace the fantasy_score column in Skaters with df_od_pred_pts
+#e <- 1
+#for(i in df_od_pred_pts){
+#  myRequest <- paste("UPDATE Skaters SET fantasy_score=",i , "WHERE ", "rows=",e)
+#  dbSendQuery(mydb,myRequest)
+#  e<- e+1
+#}
+
 e <- 1
-for(i in df_od_pred_pts){
-  myRequest <- paste("UPDATE Skaters SET fantasy_score=",i , "WHERE ", "rows=",e)
+for(i in g_pred_p){
+  myRequest <- paste("UPDATE Goalies SET fantasy_score=",i , "WHERE ", "rows=",e)
   dbSendQuery(mydb,myRequest)
   e<- e+1
 }
 
 
-df <- data.frame(team=c(),score=c())
-df$team <- append(df$team, 1)
-df$team
 
-mystat <- "team"
-
-teamSumScore <- function(league_id, statCol){
-  scoreDF <- data.frame(team_id=c(),score=c())
-  
+all_cons <- dbListConnections(MySQL())
+for (con in all_cons){
+  dbDisconnect(con)
 }
-
-
-
-

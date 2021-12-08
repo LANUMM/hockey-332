@@ -29,7 +29,7 @@ scrapeAll <- function(){
 #######################################################################################
 # Function to scrape season skater statistics from Hockey-reference.com
 # Input: parameter S which is a string and represents the season (YYYY)
-# Output: 
+# Output: Data Frame of Skaters data
 #######################################################################################
 scrapeSkaters <- function(S) {
    # The function takes parameter S which is a string and represents the season (YYYY)
@@ -109,6 +109,8 @@ scrapeSkaters <- function(S) {
 
 #######################################################################################
 # Function to scrape season goalie statistics from Hockey-reference.com
+# Input: parameter S which is a string and represents the season (YYYY)
+# Output: Data Frame of Goalie data
 #######################################################################################
 scrapeGoalies <- function(S) {
    # The function takes parameter S which is a string and represents the season (YYYY)
@@ -409,19 +411,10 @@ mydb <- dbConnect(MySQL(), user = 'g1117489', password = '4jU2vUv9', dbname = 'g
 on.exit(dbDisconnect(mydb))
 
 dbWriteTable(mydb,"Skaters",allSkaters,overwrite=TRUE)
-
+dbWriteTable(mydb, "Goalies", allGoalies, overwrite=TRUE)
 
 
 all_cons <- dbListConnections(MySQL())
 for (con in all_cons){
    dbDisconnect(con)
 }
-
-
-myData <- allSkaters[ ,c("player_id", "year", "player","age","tm","pos","gp","g","a","pts","pim","ppg","shg","bpa","sha","sog","blk","hit","ppp","shp","rank")]
-myData <- allSkaters[ ,c("player_id", "year", "player","age","tm","pos","gp","g","a","pts","pim","ppg","shg","ppa","sha","sog","blk","hit","ppp","shp","rank")]
-colnames(myData)[2] <- "season"
-myData
-
-write.csv(myData,"C:\\Users\\matth\\OneDrive\\Desktop\\myData.csv", row.names = FALSE)
-
