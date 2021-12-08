@@ -75,7 +75,6 @@ for (ind in skater_ids2$player_id) {
   myReq <- paste("SELECT * FROM Skaters WHERE Skaters.player_id=",ind)
   myData = dbSendQuery(mydb,myReq)
   skater_info = data.frame(fetch(myData, n = -1)) #dataframe
-  skater_info2 = skater_info[rep(seq_len(nrow(skater_info)), each = 20), ]
   if (nrow(skater_info) == 1) {
     next
   }else {
@@ -83,6 +82,7 @@ for (ind in skater_ids2$player_id) {
       ## This section must iterate the target variable over all o/d player statistics to report forecasts of each, for each player
       ## partition dataset
       # currently set to 75/25 train/test
+      skater_info2 = skater_info[rep(seq_len(nrow(skater_info)), each = 20), ]
       trainindex_od = data.frame(createDataPartition(skater_info2$indx, p = 0.75, list = F, times = 1))$Resample1 # should train/test selection be random or linear with time?
       train_od = data.frame(skater_info2$indx[trainindex_od, ])
       test_od = data.frame(skater_info2$indx[-trainindex_od,])
@@ -209,3 +209,4 @@ all_cons <- dbListConnections(MySQL())
 for (con in all_cons){
   dbDisconnect(con)
 }
+
